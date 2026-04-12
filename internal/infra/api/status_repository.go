@@ -17,7 +17,7 @@ type StatusRepository struct {
 
 func (s *StatusRepository) Find(ctx context.Context) (*status.Status, error) {
 	url := fmt.Sprintf("http://%s/status", s.cl.apiURL)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read status: %w", err)
 	}
@@ -42,7 +42,7 @@ func (s *StatusRepository) Find(ctx context.Context) (*status.Status, error) {
 
 func (s *StatusRepository) Update(ctx context.Context) error {
 	url := fmt.Sprintf("http://%s/weather", s.cl.apiURL)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to update status: %w", err)
 	}

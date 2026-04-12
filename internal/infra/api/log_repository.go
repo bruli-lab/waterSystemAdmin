@@ -17,7 +17,7 @@ type LogRepository struct {
 
 func (l LogRepository) Find(ctx context.Context) ([]logs.Log, error) {
 	url := fmt.Sprintf("http://%s/logs", l.cl.apiURL)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request to read logs: %w", err)
 	}

@@ -14,6 +14,7 @@ services:
         - PASSWORD_FILE=${PASSWORD_FILE:-/tmp/password}
     networks:
         - water_system
+    command: ["air", "-c", ".air.toml"]
 
 networks:
     water_system:

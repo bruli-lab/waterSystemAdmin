@@ -28,7 +28,7 @@ func CreateProgram(tplSet *pongo2.TemplateSet, zonesSvc *zones.FindZones, create
 		}
 		tplCtx.Add("page", "programs")
 		tplCtx.Add("type", programType)
-		zones, err := zonesSvc.Find(r.Context())
+		foundZones, err := zonesSvc.Find(r.Context())
 		if err != nil {
 			log.ErrorContext(r.Context(), "error finding zones",
 				slog.String("error", err.Error()))
@@ -36,10 +36,10 @@ func CreateProgram(tplSet *pongo2.TemplateSet, zonesSvc *zones.FindZones, create
 			return
 		}
 		switch {
-		case len(zones) == 0:
+		case len(foundZones) == 0:
 			tplCtx.AddError("no zones found")
 		default:
-			tplCtx.Add("zones", zones)
+			tplCtx.Add("zones", foundZones)
 		}
 
 		if r.Method == http.MethodPost {
@@ -69,9 +69,9 @@ func processCreateProgramForm(r *http.Request, context map[string]interface{}, s
 
 	for i, sec := range seconds {
 		zonesKey := fmt.Sprintf("zones_%d[]", i)
-		zones := r.Form[zonesKey]
+		foundZones := r.Form[zonesKey]
 
-		if len(zones) == 0 {
+		if len(foundZones) == 0 {
 			context["error_msg"] = "Invalid zones"
 			return
 		}
@@ -84,7 +84,7 @@ func processCreateProgramForm(r *http.Request, context map[string]interface{}, s
 
 		executions = append(executions, programs.Execution{
 			Seconds: s,
-			Zones:   zones,
+			Zones:   foundZones,
 		})
 	}
 	pr := programs.Program{

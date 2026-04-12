@@ -17,12 +17,15 @@ type ZoneRepository struct {
 
 func (r ZoneRepository) Delete(ctx context.Context, id string) error {
 	url := fmt.Sprintf("http://%s/zones/%s", r.cl.apiURL, id)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to delete zone: %w", err)
 	}
 	req.Header.Add("Authorization", r.cl.token)
 	resp, err := r.cl.cl.Do(req)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if err != nil {
 		return fmt.Errorf("failed doing the request to delete zone: %s", err.Error())
 	}
@@ -34,12 +37,15 @@ func (r ZoneRepository) Delete(ctx context.Context, id string) error {
 
 func (r ZoneRepository) FindAll(ctx context.Context) ([]zones.Zone, error) {
 	url := fmt.Sprintf("http://%s/zones", r.cl.apiURL)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find zones: %w", err)
 	}
 	req.Header.Add("Authorization", r.cl.token)
 	resp, err := r.cl.cl.Do(req)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if err != nil {
 		return nil, fmt.Errorf("failed doing the request to find zones: %s", err.Error())
 	}

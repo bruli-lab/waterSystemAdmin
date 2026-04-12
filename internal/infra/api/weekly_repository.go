@@ -19,12 +19,15 @@ type WeeklyRepository struct {
 func (w WeeklyRepository) Remove(ctx context.Context, day *programs.WeekDay) error {
 	url := fmt.Sprintf("http://%s/programs/weekly/%s", w.cl.apiURL, strings.ToLower(day.String()))
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request to delete weekly program: %w", err)
 	}
 	req.Header.Add("Authorization", w.cl.token)
 	resp, err := w.cl.cl.Do(req)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to delete weekly program: %w", err)
 	}
@@ -47,6 +50,9 @@ func (w WeeklyRepository) Save(ctx context.Context, p *programs.Weekly) error {
 	}
 	req.Header.Add("Authorization", w.cl.token)
 	resp, err := w.cl.cl.Do(req)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to create weekly program: %w", err)
 	}

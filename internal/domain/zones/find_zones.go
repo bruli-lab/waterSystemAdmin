@@ -1,6 +1,8 @@
 package zones
 
-import "golang.org/x/net/context"
+import (
+	"context"
+)
 
 type FindZones struct {
 	repo Repository

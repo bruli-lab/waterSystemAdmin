@@ -21,17 +21,17 @@ func CreateWeeklyProgram(set *pongo3.TemplateSet, zonesSvc *zones.FindZones, cre
 		context := map[string]interface{}{
 			"page": "programs",
 		}
-		zones, err := zonesSvc.Find(r.Context())
+		foundZones, err := zonesSvc.Find(r.Context())
 		if err != nil {
 			log.ErrorContext(r.Context(), "error finding zones", slog.String("error", err.Error()))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		switch {
-		case len(zones) == 0:
+		case len(foundZones) == 0:
 			context["error_msg"] = "No zones found"
 		default:
-			context["zones"] = zones
+			context["zones"] = foundZones
 		}
 		if r.Method == http.MethodPost {
 			processCreateWeeklyForm(r, context, createSvc)
@@ -79,14 +79,14 @@ func processCreateWeeklyForm(r *http.Request, context map[string]interface{}, sv
 				context["error_msg"] = "invalid seconds"
 				return
 			}
-			zones := r.Form["executions_"+strconv.Itoa(i)+"_zones_"+strconv.Itoa(n)+"[]"]
-			if len(zones) == 0 {
+			foundZones := r.Form["executions_"+strconv.Itoa(i)+"_zones_"+strconv.Itoa(n)+"[]"]
+			if len(foundZones) == 0 {
 				context["error_msg"] = "zone is required"
 				return
 			}
 			exec[n] = programs.Execution{
 				Seconds: int(sec),
-				Zones:   zones,
+				Zones:   foundZones,
 			}
 		}
 		prgms[i] = programs.Program{

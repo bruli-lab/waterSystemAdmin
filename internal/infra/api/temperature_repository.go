@@ -18,12 +18,15 @@ type TemperatureRepository struct {
 func (w TemperatureRepository) Remove(ctx context.Context, temperature int) error {
 	url := fmt.Sprintf("http://%s/programs/temperature/%v", w.cl.apiURL, temperature)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request to delete temperature program: %w", err)
 	}
 	req.Header.Add("Authorization", w.cl.token)
 	resp, err := w.cl.cl.Do(req)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to delete temperature program: %w", err)
 	}
@@ -46,6 +49,9 @@ func (w TemperatureRepository) Save(ctx context.Context, p *programs.Temperature
 	}
 	req.Header.Add("Authorization", w.cl.token)
 	resp, err := w.cl.cl.Do(req)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to create temperature program: %w", err)
 	}

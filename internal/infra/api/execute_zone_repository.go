@@ -26,6 +26,9 @@ func (e ExecuteZoneRepository) SendExecution(ctx context.Context, exe *execution
 	}
 	req.Header.Add("Authorization", e.cl.token)
 	resp, err := e.cl.cl.Do(req)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if err != nil {
 		return fmt.Errorf("failed doing the request to execute zone: %w", err)
 	}

@@ -18,12 +18,15 @@ type ProgramsRepository struct {
 func (a ProgramsRepository) Remove(ctx context.Context, hour *programs.Hour, t *programs.TypeProgram) error {
 	url := fmt.Sprintf("http://%s/programs/%s/%s", a.cl.apiURL, t.String(), hour.String())
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request to delete program: %w", err)
 	}
 	req.Header.Add("Authorization", a.cl.token)
 	resp, err := a.cl.cl.Do(req)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to delete program: %w", err)
 	}
@@ -45,6 +48,9 @@ func (a ProgramsRepository) Save(ctx context.Context, p *programs.Program, t *pr
 	}
 	req.Header.Add("Authorization", a.cl.token)
 	resp, err := a.cl.cl.Do(req)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to create program: %w", err)
 	}
@@ -56,7 +62,7 @@ func (a ProgramsRepository) Save(ctx context.Context, p *programs.Program, t *pr
 
 func (a ProgramsRepository) FindAll(ctx context.Context) (*programs.Programs, error) {
 	url := fmt.Sprintf("http://%s/programs", a.cl.apiURL)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request to read programs: %w", err)
 	}
@@ -76,10 +82,10 @@ func (a ProgramsRepository) FindAll(ctx context.Context) (*programs.Programs, er
 	if err = json.Unmarshal(data, &prms); err != nil {
 		return nil, fmt.Errorf("failed to unmarshall programs: %w", err)
 	}
-	return a.buildAllPrograms(prms)
+	return a.buildAllPrograms(&prms)
 }
 
-func (a ProgramsRepository) buildAllPrograms(data Programs) (*programs.Programs, error) {
+func (a ProgramsRepository) buildAllPrograms(data *Programs) (*programs.Programs, error) {
 	daily, err := a.buildPrograms(data.Daily)
 	if err != nil {
 		return nil, err

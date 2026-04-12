@@ -31,6 +31,12 @@ import (
 const serviceName = "waterSystemAdmin"
 
 func main() {
+	if err := run(); err != nil {
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	log := buildLog()
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
@@ -38,7 +44,7 @@ func main() {
 	conf, err := config.New()
 	if err != nil {
 		log.ErrorContext(ctx, "failed to load config", slog.String("error", err.Error()))
-		os.Exit(1)
+		return err
 	}
 
 	cl := api.NewClient(conf.ApiAuthKey, conf.ApiUrl, 5*time.Second)
@@ -61,7 +67,6 @@ func main() {
 
 	authMdw := controller.AuthMiddleware(sessionStore, passwordExists, log)
 
-	// fs := http.FileServer(http.Dir("internal/infra/http/templates/static"))
 	staticFiles, _ := fs.Sub(templates.FS, "static")
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
 
@@ -93,22 +98,36 @@ func main() {
 		Handler: nil,
 	}
 
-	go runServer(ctx, log, conf, srv)
+	errCh := make(chan error)
+	defer close(errCh)
 
-	<-ctx.Done()
-	log.InfoContext(ctx, "received interrupt signal")
+	go func() {
+		if err := runServer(ctx, log, conf, srv); err != nil {
+			errCh <- err
+		}
+	}()
 
-	if err = srv.Shutdown(context.Background()); err != nil {
-		log.ErrorContext(ctx, "failed to shutdown server", slog.String("error", err.Error()))
+	select {
+	case err := <-errCh:
+		return err
+	case <-ctx.Done():
+		log.InfoContext(ctx, "received interrupt signal")
+
+		if err = srv.Shutdown(context.Background()); err != nil {
+			log.ErrorContext(ctx, "failed to shutdown server", slog.String("error", err.Error()))
+		}
 	}
+
+	return nil
 }
 
-func runServer(ctx context.Context, log *slog.Logger, conf *config.Config, srv *http.Server) {
+func runServer(ctx context.Context, log *slog.Logger, conf *config.Config, srv *http.Server) error {
 	log.InfoContext(ctx, "starting server", slog.String("url", conf.ServerURL))
 	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.ErrorContext(ctx, "failed to start server", slog.String("error", err.Error()))
-		os.Exit(1)
+		return err
 	}
+	return nil
 }
 
 func buildLog() *slog.Logger {
@@ -116,7 +135,7 @@ func buildLog() *slog.Logger {
 		Level: slog.LevelInfo,
 	})
 
-	log := slog.New(handler)
-	log.With("service", serviceName)
-	return log
+	logger := slog.New(handler)
+	logger.With("service", serviceName)
+	return logger
 }
