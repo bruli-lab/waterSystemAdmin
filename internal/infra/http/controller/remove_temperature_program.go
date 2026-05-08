@@ -23,7 +23,7 @@ func RemoveTemperatureProgram(set *pongo3.TemplateSet, removeSvc *programs.Remov
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		context := map[string]interface{}{
+		context := map[string]any{
 			"page": "programs",
 		}
 

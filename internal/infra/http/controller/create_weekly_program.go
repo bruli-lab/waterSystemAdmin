@@ -18,7 +18,7 @@ func CreateWeeklyProgram(set *pongo3.TemplateSet, zonesSvc *zones.FindZones, cre
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		context := map[string]interface{}{
+		context := map[string]any{
 			"page": "programs",
 		}
 		foundZones, err := zonesSvc.Find(r.Context())
@@ -44,7 +44,7 @@ func CreateWeeklyProgram(set *pongo3.TemplateSet, zonesSvc *zones.FindZones, cre
 	}
 }
 
-func processCreateWeeklyForm(r *http.Request, context map[string]interface{}, svc *programs.CreateWeekly) {
+func processCreateWeeklyForm(r *http.Request, context map[string]any, svc *programs.CreateWeekly) {
 	if err := r.ParseForm(); err != nil {
 		context["error_msg"] = "invalid form"
 		return

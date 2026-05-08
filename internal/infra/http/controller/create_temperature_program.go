@@ -19,7 +19,7 @@ func CreateTemperatureProgram(set *pongo3.TemplateSet, zonesSvc *zones.FindZones
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		context := map[string]interface{}{
+		context := map[string]any{
 			"page": "programs",
 		}
 		foundZones, err := zonesSvc.Find(r.Context())
@@ -45,7 +45,7 @@ func CreateTemperatureProgram(set *pongo3.TemplateSet, zonesSvc *zones.FindZones
 	}
 }
 
-func processCreateTemperatureForm(r *http.Request, context map[string]interface{}, svc *programs.CreateTemperature) {
+func processCreateTemperatureForm(r *http.Request, context map[string]any, svc *programs.CreateTemperature) {
 	if err := r.ParseForm(); err != nil {
 		context["error_msg"] = "invalid form"
 		return

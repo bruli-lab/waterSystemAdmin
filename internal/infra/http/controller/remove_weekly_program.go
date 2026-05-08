@@ -23,7 +23,7 @@ func RemoveWeeklyProgram(set *pongo3.TemplateSet, removeSvc *programs.RemoveWeek
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		context := map[string]interface{}{
+		context := map[string]any{
 			"page": "programs",
 		}
 

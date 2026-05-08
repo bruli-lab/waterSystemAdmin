@@ -52,7 +52,7 @@ func CreateProgram(tplSet *pongo2.TemplateSet, zonesSvc *zones.FindZones, create
 	}
 }
 
-func processCreateProgramForm(r *http.Request, context map[string]interface{}, svc *programs.Create, programType string) {
+func processCreateProgramForm(r *http.Request, context map[string]any, svc *programs.Create, programType string) {
 	if err := r.ParseForm(); err != nil {
 		context["error_msg"] = "Error parsing form"
 		return

@@ -16,7 +16,7 @@ func Password(set *pongo3.TemplateSet, create *password.Create, log *slog.Logger
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		context := map[string]interface{}{}
+		context := map[string]any{}
 		if r.Method == http.MethodPost {
 			passw := r.FormValue("password")
 			rePassword := r.FormValue("re-password")
