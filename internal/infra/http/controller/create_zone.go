@@ -23,7 +23,7 @@ func CreateZone(set *pongo3.TemplateSet, svc *zones.Create, stSvc *status.FindSt
 			log.ErrorContext(r.Context(), "error building status in template controller")
 		}
 		tplCtx.Add("page", "zones")
-		tplCtx.Add("relays", []int{1, 2, 3, 4})
+		tplCtx.Add("relays", []int{1, 2, 3})
 		if r.Method == http.MethodPost {
 			processCreateZoneForm(r, tplCtx, svc)
 		}

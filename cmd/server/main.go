@@ -84,6 +84,8 @@ func run() error {
 	http.HandleFunc("/programs/temperature/delete/{temperature}", authMdw(controller.RemoveTemperatureProgram(tplSet, programs.NewRemoveTemperature(tempRepo), log)))
 	http.HandleFunc("/zones", authMdw(controller.Zones(tplSet, findZones, findStatus, log)))
 	http.HandleFunc("/execution/{id}", authMdw(controller.Execution(tplSet, execution.NewExecuteZone(executionRepo), findStatus, log)))
+	http.HandleFunc("/fertilizer/{id}", authMdw(controller.Fertilizer(tplSet, execution.NewExecuteZone(executionRepo), findStatus, log)))
+	http.HandleFunc("/clean/{id}", authMdw(controller.Clean(tplSet, execution.NewClean(executionRepo), findStatus, log)))
 	http.HandleFunc("/deactivate", authMdw(controller.Deactivate(status.NewActivateDeactivate(activateRepo), log)))
 	http.HandleFunc("/activate", authMdw(controller.Activate(status.NewActivateDeactivate(activateRepo), log)))
 	http.HandleFunc("/zones/new", authMdw(controller.CreateZone(tplSet, zones.NewCreate(zoneRepo), findStatus, log)))

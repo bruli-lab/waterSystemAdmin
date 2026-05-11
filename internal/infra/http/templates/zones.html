@@ -32,9 +32,23 @@
                 </div>
 
                 <div class="d-flex flex-wrap justify-content-end justify-content-sm-end gap-2 mt-3">
-                <a href="/execution/{{ zone.ID }}" class="btn btn-primary btn-sm" title="Execute">
+                    <a href="/execution/{{ zone.ID }}" class="btn btn-primary btn-sm" title="Execute">
                         <span class="material-symbols-outlined">sprinkler</span>
                     </a>
+                    <a href="/fertilizer/{{ zone.ID }}" class="btn btn-success btn-sm" title="Fertilizer">
+                        <span class="material-symbols-outlined">yard</span>
+                    </a>
+
+                    <form method="POST"
+                          action="/clean/{{ zone.ID }}"
+                          onsubmit="return confirm('Estàs segur que vols executar la neteja?')">
+
+                        <button type="submit"
+                                class="btn btn-info btn-sm"
+                                title="Clean">
+                            <span class="material-symbols-outlined">cleaning_services</span>
+                        </button>
+                    </form>
 
                     <a href="/zones/{{ zone.ID }}/edit" class="btn btn-warning btn-sm" title="Update">
                         <span class="material-symbols-outlined">edit</span>

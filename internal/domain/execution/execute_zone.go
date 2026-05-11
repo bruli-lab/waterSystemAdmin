@@ -7,6 +7,9 @@ type ExecuteZone struct {
 }
 
 func (e ExecuteZone) Execute(ctx context.Context, exe *Execution) error {
+	if exe.Fertilizer {
+		return e.repo.SendFertilizer(ctx, exe)
+	}
 	return e.repo.SendExecution(ctx, exe)
 }
 
