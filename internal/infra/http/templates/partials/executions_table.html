@@ -4,7 +4,7 @@
         <tr>
             <th scope="col">Hour</th>
             <th scope="col">Executions</th>
-            <th scope="col">Actions</th>
+            <th scope="col">Fertilizer</th>
         </tr>
         </thead>
         <tbody>
@@ -21,6 +21,24 @@
                     {% endfor %}
                 </div>
             </td>
+            <td class="fw-bold">
+                {% if day.Fertilizer %}
+                <span class="badge bg-success d-inline-flex align-items-center gap-1">
+            <span class="material-symbols-outlined" style="font-size:18px;">
+                compost
+            </span>
+            Fertilizer
+        </span>
+                {% else %}
+                <span class="badge bg-primary d-inline-flex align-items-center gap-1">
+            <span class="material-symbols-outlined" style="font-size:18px;">
+                water_drop
+            </span>
+            Water
+        </span>
+                {% endif %}
+            </td>
+
             <td class="text-end" style="min-width: 70px;">
                 <form method="POST" action="/programs/delete/{{ day.Hour }}/{{ type|lower }}"
                       onsubmit="return confirm('Are you sure you want to delete all executions for this hour?')">

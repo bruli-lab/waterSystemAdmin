@@ -12,6 +12,7 @@ services:
         - WS_AUTH_TOKEN=${WS_AUTH_TOKEN:-token}
         - API_URL=${API_URL:-water_system:8080}
         - PASSWORD_FILE=${PASSWORD_FILE:-/tmp/password}
+        - LOG_LEVEL=debug
     networks:
         - water_system
     command: ["air", "-c", ".air.toml"]

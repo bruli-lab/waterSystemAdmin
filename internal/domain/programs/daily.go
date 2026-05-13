@@ -1,3 +1,3 @@
 package programs
 
-type Daily []Program
+type Daily []FertilizerProgram

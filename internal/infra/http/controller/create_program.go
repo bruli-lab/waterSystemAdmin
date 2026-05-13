@@ -65,6 +65,8 @@ func processCreateProgramForm(r *http.Request, context map[string]any, svc *prog
 	}
 	seconds := r.Form["seconds[]"]
 
+	var fertilizer bool
+	fertilizer, _ = strconv.ParseBool(r.FormValue("fertilizer"))
 	executions := make([]programs.Execution, 0)
 
 	for i, sec := range seconds {
@@ -87,9 +89,10 @@ func processCreateProgramForm(r *http.Request, context map[string]any, svc *prog
 			Zones:   foundZones,
 		})
 	}
-	pr := programs.Program{
+	pr := programs.FertilizerProgram{
 		Executions: executions,
 		Hour:       hour,
+		Fertilizer: fertilizer,
 	}
 	progType, err := programs.ParseProgramType(programType)
 	if err != nil {

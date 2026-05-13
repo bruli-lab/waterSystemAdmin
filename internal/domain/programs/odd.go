@@ -1,3 +1,3 @@
 package programs
 
-type Odd []Program
+type Odd []FertilizerProgram

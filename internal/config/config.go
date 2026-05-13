@@ -7,6 +7,7 @@ type Config struct {
 	ApiUrl       string `envconfig:"API_URL" required:"true"`
 	ApiAuthKey   string `envconfig:"WS_AUTH_TOKEN" required:"true"`
 	PasswordFile string `envconfig:"PASSWORD_FILE" required:"true"`
+	LogLevel     string `envconfig:"LOG_LEVEL" required:"true"`
 }
 
 func New() (*Config, error) {

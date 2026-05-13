@@ -5,6 +5,12 @@ type Program struct {
 	Hour       Hour
 }
 
+type FertilizerProgram struct {
+	Executions []Execution
+	Hour       Hour
+	Fertilizer bool
+}
+
 type Programs struct {
 	Daily       Daily
 	Odd         Odd

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -37,15 +38,15 @@ func main() {
 }
 
 func run() error {
-	log := buildLog()
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
 	conf, err := config.New()
 	if err != nil {
-		log.ErrorContext(ctx, "failed to load config", slog.String("error", err.Error()))
+		fmt.Printf("failed to load config: %s\n", err.Error())
 		return err
 	}
+	log := buildLog(conf.LogLevel)
 
 	cl := api.NewClient(conf.ApiAuthKey, conf.ApiUrl, 5*time.Second)
 	statusRepo := api.NewStatusRepository(cl)
@@ -132,12 +133,20 @@ func runServer(ctx context.Context, log *slog.Logger, conf *config.Config, srv *
 	return nil
 }
 
-func buildLog() *slog.Logger {
+func buildLog(level string) *slog.Logger {
+	levels := map[string]slog.Level{
+		"info":  slog.LevelInfo,
+		"debug": slog.LevelDebug,
+		"error": slog.LevelError,
+		"warn":  slog.LevelWarn,
+	}
+	l := levels[level]
+
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+		Level: l,
 	})
 
-	logger := slog.New(handler)
-	logger.With("service", serviceName)
-	return logger
+	log := slog.New(handler)
+	log.With("service", serviceName)
+	return log
 }

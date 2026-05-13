@@ -1,3 +1,3 @@
 package programs
 
-type Even []Program
+type Even []FertilizerProgram

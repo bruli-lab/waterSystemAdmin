@@ -12,7 +12,7 @@ import (
 type Section struct {
 	ID    string
 	Title string
-	Data  []programs.Program
+	Data  []programs.FertilizerProgram
 }
 
 type Weekly struct {

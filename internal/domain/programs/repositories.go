@@ -4,7 +4,7 @@ import "context"
 
 type Repository interface {
 	FindAll(ctx context.Context) (*Programs, error)
-	Save(ctx context.Context, p *Program, t *TypeProgram) error
+	Save(ctx context.Context, p *FertilizerProgram, t *TypeProgram) error
 	Remove(ctx context.Context, hour *Hour, t *TypeProgram) error
 }
 

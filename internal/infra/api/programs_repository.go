@@ -36,10 +36,10 @@ func (a ProgramsRepository) Remove(ctx context.Context, hour *programs.Hour, t *
 	return nil
 }
 
-func (a ProgramsRepository) Save(ctx context.Context, p *programs.Program, t *programs.TypeProgram) error {
+func (a ProgramsRepository) Save(ctx context.Context, p *programs.FertilizerProgram, t *programs.TypeProgram) error {
 	url := fmt.Sprintf("http://%s/programs/%s", a.cl.apiURL, t.String())
 
-	body, _ := json.Marshal(a.buildProgramDTO(p))
+	body, _ := json.Marshal(a.buildFertilizerProgramDTO(p))
 	var buff bytes.Buffer
 	buff.Write(body)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &buff)
@@ -86,7 +86,7 @@ func (a ProgramsRepository) FindAll(ctx context.Context) (*programs.Programs, er
 }
 
 func (a ProgramsRepository) buildAllPrograms(data *Programs) (*programs.Programs, error) {
-	daily, err := a.buildPrograms(data.Daily)
+	daily, err := a.buildFertilizerPrograms(data.Daily)
 	if err != nil {
 		return nil, err
 	}
@@ -94,11 +94,11 @@ func (a ProgramsRepository) buildAllPrograms(data *Programs) (*programs.Programs
 	if err != nil {
 		return nil, err
 	}
-	odd, err := a.buildPrograms(data.Odd)
+	odd, err := a.buildFertilizerPrograms(data.Odd)
 	if err != nil {
 		return nil, err
 	}
-	even, err := a.buildPrograms(data.Even)
+	even, err := a.buildFertilizerPrograms(data.Even)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (a ProgramsRepository) buildAllPrograms(data *Programs) (*programs.Programs
 }
 
 func (a ProgramsRepository) buildPrograms(data []Program) ([]programs.Program, error) {
-	daily := make(programs.Daily, len(data))
+	daily := make([]programs.Program, len(data))
 	for i, day := range data {
 		hour, err := programs.ParseHour(day.Hour)
 		if err != nil {
@@ -132,6 +132,28 @@ func (a ProgramsRepository) buildPrograms(data []Program) ([]programs.Program, e
 		daily[i] = programs.Program{
 			Executions: exec,
 			Hour:       hour,
+		}
+	}
+	return daily, nil
+}
+func (a ProgramsRepository) buildFertilizerPrograms(data []FertilizerProgram) ([]programs.FertilizerProgram, error) {
+	daily := make(programs.Daily, len(data))
+	for i, day := range data {
+		hour, err := programs.ParseHour(day.Hour)
+		if err != nil {
+			return nil, err
+		}
+		exec := make([]programs.Execution, len(day.Executions))
+		for j, e := range day.Executions {
+			exec[j] = programs.Execution{
+				Seconds: e.Seconds,
+				Zones:   e.Zones,
+			}
+		}
+		daily[i] = programs.FertilizerProgram{
+			Executions: exec,
+			Hour:       hour,
+			Fertilizer: day.Fertilizer,
 		}
 	}
 	return daily, nil
@@ -182,6 +204,20 @@ func (a ProgramsRepository) buildProgramDTO(p *programs.Program) Program {
 	return Program{
 		Executions: exec,
 		Hour:       p.Hour.String(),
+	}
+}
+func (a ProgramsRepository) buildFertilizerProgramDTO(p *programs.FertilizerProgram) FertilizerProgram {
+	exec := make([]Execution, len(p.Executions))
+	for i, e := range p.Executions {
+		exec[i] = Execution{
+			Seconds: e.Seconds,
+			Zones:   e.Zones,
+		}
+	}
+	return FertilizerProgram{
+		Executions: exec,
+		Hour:       p.Hour.String(),
+		Fertilizer: p.Fertilizer,
 	}
 }
 

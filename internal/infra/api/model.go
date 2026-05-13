@@ -20,6 +20,11 @@ type Program struct {
 	Executions []Execution `json:"executions"`
 	Hour       string      `json:"hour"`
 }
+type FertilizerProgram struct {
+	Executions []Execution `json:"executions"`
+	Hour       string      `json:"hour"`
+	Fertilizer bool        `json:"fertilizer"`
+}
 
 type ProgramWeekly struct {
 	WeekDay  string    `json:"week_day"`
@@ -27,10 +32,10 @@ type ProgramWeekly struct {
 }
 
 type Programs struct {
-	Daily       []Program            `json:"daily"`
+	Daily       []FertilizerProgram  `json:"daily"`
 	Temperature []TemperatureProgram `json:"temperature"`
-	Odd         []Program            `json:"odd"`
-	Even        []Program            `json:"even"`
+	Odd         []FertilizerProgram  `json:"odd"`
+	Even        []FertilizerProgram  `json:"even"`
 	Weekly      []ProgramWeekly      `json:"weekly"`
 }
 
