@@ -7,10 +7,11 @@ import (
 	"strconv"
 
 	"github.com/bruli/waterSystemAdmin/internal/domain/programs"
+	"github.com/bruli/waterSystemAdmin/internal/domain/status"
 	pongo3 "github.com/flosch/pongo2/v6"
 )
 
-func RemoveTemperatureProgram(set *pongo3.TemplateSet, removeSvc *programs.RemoveTemperature, log *slog.Logger) http.HandlerFunc {
+func RemoveTemperatureProgram(set *pongo3.TemplateSet, stSvc *status.FindStatus, removeSvc *programs.RemoveTemperature, log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			log.ErrorContext(r.Context(), "Method not allowed", slog.String("method", r.Method))
@@ -23,21 +24,22 @@ func RemoveTemperatureProgram(set *pongo3.TemplateSet, removeSvc *programs.Remov
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		context := map[string]any{
-			"page": "programs",
+		tplCtx, failed := buildStatusInTemplateController(r.Context(), stSvc)
+		if failed {
+			log.ErrorContext(r.Context(), "error building status in template controller")
 		}
+		tplCtx.Add("page", "programs")
 
 		err = removingTemperatureProgram(r, removeSvc)
 		switch {
 		case err != nil:
 			log.ErrorContext(r.Context(), "error removing temperature program",
 				slog.String("error", err.Error()))
-			context["error"] = err.Error()
 		default:
-			context["success"] = true
+			tplCtx.Add("success", true)
 		}
 
-		if err = tpl.ExecuteWriter(context, w); err != nil {
+		if err = tpl.ExecuteWriter(tplCtx.toPongoContext(), w); err != nil {
 			log.ErrorContext(r.Context(), "error executing template", slog.String("error", err.Error()))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}

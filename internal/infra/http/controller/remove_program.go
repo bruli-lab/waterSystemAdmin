@@ -6,10 +6,11 @@ import (
 	"net/http"
 
 	"github.com/bruli/waterSystemAdmin/internal/domain/programs"
+	"github.com/bruli/waterSystemAdmin/internal/domain/status"
 	pongo3 "github.com/flosch/pongo2/v6"
 )
 
-func RemoveProgram(set *pongo3.TemplateSet, svc *programs.Remove, log *slog.Logger) http.HandlerFunc {
+func RemoveProgram(set *pongo3.TemplateSet, stSvc *status.FindStatus, svc *programs.Remove, log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			log.ErrorContext(r.Context(), "Method not allowed",
@@ -24,19 +25,21 @@ func RemoveProgram(set *pongo3.TemplateSet, svc *programs.Remove, log *slog.Logg
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		context := map[string]any{
-			"page": "programs",
+		tplCtx, failed := buildStatusInTemplateController(r.Context(), stSvc)
+		if failed {
+			log.ErrorContext(r.Context(), "error building status in template controller")
 		}
+		tplCtx.Add("page", "programs")
 
 		err = removingProgram(r, svc)
 		switch {
 		case err != nil:
-			context["error"] = err.Error()
+			tplCtx.AddError(err.Error())
 		default:
-			context["success"] = true
+			tplCtx.Add("success", true)
 		}
 
-		if err = tpl.ExecuteWriter(context, w); err != nil {
+		if err = tpl.ExecuteWriter(tplCtx.toPongoContext(), w); err != nil {
 			log.ErrorContext(r.Context(), "error executing template",
 				slog.String("error", err.Error()))
 			http.Error(w, err.Error(), http.StatusInternalServerError)

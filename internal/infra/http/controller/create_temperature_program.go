@@ -6,11 +6,12 @@ import (
 	"strconv"
 
 	"github.com/bruli/waterSystemAdmin/internal/domain/programs"
+	"github.com/bruli/waterSystemAdmin/internal/domain/status"
 	"github.com/bruli/waterSystemAdmin/internal/domain/zones"
 	pongo3 "github.com/flosch/pongo2/v6"
 )
 
-func CreateTemperatureProgram(set *pongo3.TemplateSet, zonesSvc *zones.FindZones, createSvc *programs.CreateTemperature, log *slog.Logger) http.HandlerFunc {
+func CreateTemperatureProgram(set *pongo3.TemplateSet, zonesSvc *zones.FindZones, stSvc *status.FindStatus, createSvc *programs.CreateTemperature, log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tpl, err := set.FromFile("create_temperature_program.html")
 		if err != nil {
@@ -19,9 +20,11 @@ func CreateTemperatureProgram(set *pongo3.TemplateSet, zonesSvc *zones.FindZones
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		context := map[string]any{
-			"page": "programs",
+		tplCtx, failed := buildStatusInTemplateController(r.Context(), stSvc)
+		if failed {
+			log.ErrorContext(r.Context(), "error building status in template controller")
 		}
+		tplCtx.Add("page", "programs")
 		foundZones, err := zonesSvc.Find(r.Context())
 		if err != nil {
 			log.ErrorContext(r.Context(), "error finding zones", slog.String("error", err.Error()))
@@ -30,15 +33,15 @@ func CreateTemperatureProgram(set *pongo3.TemplateSet, zonesSvc *zones.FindZones
 		}
 		switch {
 		case len(foundZones) == 0:
-			context["error_msg"] = "No zones found"
+			tplCtx.AddError("no zones found")
 		default:
-			context["zones"] = foundZones
+			tplCtx.Add("zones", foundZones)
 		}
 		if r.Method == http.MethodPost {
-			processCreateTemperatureForm(r, context, createSvc)
+			processCreateTemperatureForm(r, tplCtx, createSvc)
 		}
 
-		if err = tpl.ExecuteWriter(context, w); err != nil {
+		if err = tpl.ExecuteWriter(tplCtx.toPongoContext(), w); err != nil {
 			log.ErrorContext(r.Context(), "error executing template", slog.String("error", err.Error()))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
