@@ -136,6 +136,7 @@ func (a ProgramsRepository) buildPrograms(data []Program) ([]programs.Program, e
 	}
 	return daily, nil
 }
+
 func (a ProgramsRepository) buildFertilizerPrograms(data []FertilizerProgram) ([]programs.FertilizerProgram, error) {
 	daily := make(programs.Daily, len(data))
 	for i, day := range data {
@@ -193,19 +194,6 @@ func (a ProgramsRepository) buildWeeklyPrograms(progms []ProgramWeekly) ([]progr
 	return week, nil
 }
 
-func (a ProgramsRepository) buildProgramDTO(p *programs.Program) Program {
-	exec := make([]Execution, len(p.Executions))
-	for i, e := range p.Executions {
-		exec[i] = Execution{
-			Seconds: e.Seconds,
-			Zones:   e.Zones,
-		}
-	}
-	return Program{
-		Executions: exec,
-		Hour:       p.Hour.String(),
-	}
-}
 func (a ProgramsRepository) buildFertilizerProgramDTO(p *programs.FertilizerProgram) FertilizerProgram {
 	exec := make([]Execution, len(p.Executions))
 	for i, e := range p.Executions {

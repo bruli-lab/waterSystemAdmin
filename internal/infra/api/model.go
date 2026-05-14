@@ -14,6 +14,7 @@ type Status struct {
 	IsDay           bool   `json:"is_day"`
 	UpdatedAt       string `json:"updated_at"`
 	Active          bool
+	Clean           bool
 }
 
 type Program struct {

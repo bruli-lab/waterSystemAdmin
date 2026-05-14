@@ -81,6 +81,7 @@ func (s *StatusRepository) buildStatus(st Status) (*status.Status, error) {
 		IsDay:           st.IsDay,
 		UpdatedAt:       updated,
 		Active:          st.Active,
+		Clean:           st.Clean,
 	}, nil
 }
 

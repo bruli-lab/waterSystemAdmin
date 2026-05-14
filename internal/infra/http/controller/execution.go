@@ -36,8 +36,8 @@ func Execution(set *pongo3.TemplateSet, svc *execution.ExecuteZone, stSvc *statu
 				return
 			}
 			if err = svc.Execute(r.Context(), &execution.Execution{
-				ID:      id,
-				Seconds: seconds,
+				ID:         id,
+				Seconds:    seconds,
 				Fertilizer: false,
 			}); err != nil {
 				tplCtx.AddError(fmt.Sprintf("Error executing zone: %s", err.Error()))

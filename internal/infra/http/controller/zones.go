@@ -17,6 +17,7 @@ func Zones(set *pongo3.TemplateSet, svc *zones.FindZones, stSvc *status.FindStat
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		tplCtx, failed := buildStatusInTemplateController(r.Context(), stSvc)
 		if failed {
 			log.ErrorContext(r.Context(), "error building status in template controller")

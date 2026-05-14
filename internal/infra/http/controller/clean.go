@@ -5,11 +5,9 @@ import (
 	"net/http"
 
 	"github.com/bruli/waterSystemAdmin/internal/domain/execution"
-	"github.com/bruli/waterSystemAdmin/internal/domain/status"
-	pongo3 "github.com/flosch/pongo2/v6"
 )
 
-func Clean(set *pongo3.TemplateSet, svc *execution.Clean, stSvc *status.FindStatus, log *slog.Logger) http.HandlerFunc {
+func Clean(svc *execution.Clean, log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if r.Method != http.MethodPost {
@@ -23,6 +21,5 @@ func Clean(set *pongo3.TemplateSet, svc *execution.Clean, stSvc *status.FindStat
 			return
 		}
 		http.Redirect(w, r, "/zones", http.StatusSeeOther)
-
 	}
 }

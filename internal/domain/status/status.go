@@ -10,4 +10,5 @@ type Status struct {
 	IsDay           bool
 	UpdatedAt       time.Time
 	Active          bool
+	Clean           bool
 }
