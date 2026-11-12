@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/bruli/waterSystemAdmin/internal/domain/execution"
+	"github.com/bruli/waterSystemAdmin/internal/model/zones"
 )
 
 type ExecuteZoneRepository struct {
@@ -16,11 +16,11 @@ func (e ExecuteZoneRepository) SendClean(ctx context.Context, id string) error {
 	return e.cl.do(ctx, http.MethodPost, "/zones/clean/"+url.PathEscape(id)+"/execute", nil, nil)
 }
 
-func (e ExecuteZoneRepository) SendFertilizer(ctx context.Context, exe *execution.Execution) error {
+func (e ExecuteZoneRepository) SendFertilizer(ctx context.Context, exe *zones.Execution) error {
 	return e.cl.do(ctx, http.MethodPost, "/zones/fertilizer/"+url.PathEscape(exe.ID)+"/execute", ExecuteZone{Seconds: exe.Seconds}, nil)
 }
 
-func (e ExecuteZoneRepository) SendExecution(ctx context.Context, exe *execution.Execution) error {
+func (e ExecuteZoneRepository) SendExecution(ctx context.Context, exe *zones.Execution) error {
 	return e.cl.do(ctx, http.MethodPost, "/zones/"+url.PathEscape(exe.ID)+"/execute", ExecuteZone{Seconds: exe.Seconds}, nil)
 }
 

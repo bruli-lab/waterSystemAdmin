@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/bruli/waterSystemAdmin/internal/domain/status"
-	"github.com/bruli/waterSystemAdmin/internal/domain/vo"
+	"github.com/bruli/waterSystemAdmin/internal/model/status"
+	"github.com/bruli/waterSystemAdmin/internal/model/vo"
 )
 
 type StatusRepository struct {

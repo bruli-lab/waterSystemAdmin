@@ -12,9 +12,9 @@ type FertilizerProgram struct {
 }
 
 type Programs struct {
-	Daily       Daily
-	Odd         Odd
-	Even        Even
+	Daily       []FertilizerProgram
+	Odd         []FertilizerProgram
+	Even        []FertilizerProgram
 	Temperature Temperature
 	Weekly      []Weekly
 }

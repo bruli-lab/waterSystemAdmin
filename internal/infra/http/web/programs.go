@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/bruli/waterSystemAdmin/internal/domain/programs"
-	"github.com/bruli/waterSystemAdmin/internal/domain/zones"
+	"github.com/bruli/waterSystemAdmin/internal/model/programs"
+	"github.com/bruli/waterSystemAdmin/internal/model/zones"
 )
 
 type programSection struct {

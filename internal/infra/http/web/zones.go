@@ -8,8 +8,7 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/bruli/waterSystemAdmin/internal/domain/execution"
-	"github.com/bruli/waterSystemAdmin/internal/domain/zones"
+	"github.com/bruli/waterSystemAdmin/internal/model/zones"
 )
 
 var availableRelays = []int{1, 2, 3}
@@ -154,7 +153,7 @@ func (a *App) executeZone(w http.ResponseWriter, r *http.Request, fertilizer boo
 		a.render(w, r, &v)
 		return
 	}
-	exe := &execution.Execution{ID: id, Seconds: seconds, Fertilizer: fertilizer}
+	exe := &zones.Execution{ID: id, Seconds: seconds, Fertilizer: fertilizer}
 	if fertilizer {
 		err = a.api.Execute.SendFertilizer(r.Context(), exe)
 	} else {
