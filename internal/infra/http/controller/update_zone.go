@@ -3,7 +3,6 @@ package controller
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/bruli/waterSystemAdmin/internal/domain/status"
 	"github.com/bruli/waterSystemAdmin/internal/domain/zones"
@@ -41,7 +40,7 @@ func UpdateZone(set *pongo3.TemplateSet, findSvc *zones.FindZones, update *zones
 		}
 
 		tplCtx.Add("zone", zo)
-		tplCtx.Add("relays", []int{1, 2, 3, 4})
+		tplCtx.Add("relays", availableRelays)
 		if err = tpl.ExecuteWriter(tplCtx.toPongoContext(), w); err != nil {
 			log.ErrorContext(r.Context(), "error executing template", slog.String("error", err.Error()))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -57,22 +56,17 @@ func processUpdateZoneForm(r *http.Request, id string, context TemplateControlle
 		context.AddError("All fields are required")
 		return
 	}
-	rel := make([]int, len(relayValues))
-	for i, val := range relayValues {
-		num, err := strconv.Atoi(val)
-		if err != nil {
-			context.AddError("Invalid relay value")
-			return
-		}
-		rel[i] = num
+	rel, err := parseRelays(relayValues)
+	if err != nil {
+		context.AddError("Invalid relay value")
+		return
 	}
 	zo := &zones.Zone{
 		ID:     id,
 		Name:   name,
 		Relays: rel,
 	}
-	if err := update.Update(r.Context(), zo); err != nil {
-		context["error_msg"] = "Update zone failed."
+	if err = update.Update(r.Context(), zo); err != nil {
 		context.AddError("Update zone failed.")
 		return
 	}

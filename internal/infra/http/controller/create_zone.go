@@ -3,7 +3,6 @@ package controller
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/bruli/waterSystemAdmin/internal/domain/status"
 	"github.com/bruli/waterSystemAdmin/internal/domain/zones"
@@ -23,7 +22,7 @@ func CreateZone(set *pongo3.TemplateSet, svc *zones.Create, stSvc *status.FindSt
 			log.ErrorContext(r.Context(), "error building status in template controller")
 		}
 		tplCtx.Add("page", "zones")
-		tplCtx.Add("relays", []int{1, 2, 3})
+		tplCtx.Add("relays", availableRelays)
 		if r.Method == http.MethodPost {
 			processCreateZoneForm(r, tplCtx, svc)
 		}
@@ -44,16 +43,12 @@ func processCreateZoneForm(r *http.Request, context TemplateController, svc *zon
 		context.AddError("All fields are required")
 		return
 	}
-	rel := make([]int, len(relayValues))
-	for i, val := range relayValues {
-		num, err := strconv.Atoi(val)
-		if err != nil {
-			context.AddError("Invalid relay value")
-			return
-		}
-		rel[i] = num
+	rel, err := parseRelays(relayValues)
+	if err != nil {
+		context.AddError("Invalid relay value")
+		return
 	}
-	if err := svc.Create(r.Context(), &zones.Zone{
+	if err = svc.Create(r.Context(), &zones.Zone{
 		ID:     id,
 		Name:   name,
 		Relays: rel,

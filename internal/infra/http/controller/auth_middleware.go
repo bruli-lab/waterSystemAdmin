@@ -26,8 +26,10 @@ func AuthMiddleware(store *sessions.CookieStore, exists *password.Exists, log *s
 			}
 			session, err := store.Get(r, "session")
 			if err != nil {
-				log.ErrorContext(r.Context(), "error getting session", slog.String("error", err.Error()))
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				// A cookie signed with another key (e.g. after a restart with a new SESSION_KEY)
+				// can't be decoded: treat it as logged out so the login overwrites it.
+				log.WarnContext(r.Context(), "invalid session cookie, redirecting to login", slog.String("error", err.Error()))
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
 			}
 			if session == nil {
