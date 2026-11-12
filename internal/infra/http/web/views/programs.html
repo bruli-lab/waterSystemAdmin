@@ -1,0 +1,197 @@
+{{define "content"}}
+<div class="container">
+    <h2 class="text-center my-4">Available programs</h2>
+    {{template "alerts" .}}
+</div>
+
+{{if .Data.Loaded}}
+<div class="accordion" id="programsAccordion">
+    {{range $i, $s := .Data.Sections}}
+    <div class="accordion-item border-start border-4 border-secondary">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 text-muted border-bottom px-3 py-2">
+            <h2 class="accordion-header m-0">
+                <button class="accordion-button{{if ne $i 0}} collapsed{{end}}" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#{{$s.ID}}"
+                        aria-expanded="{{if eq $i 0}}true{{else}}false{{end}}" aria-controls="{{$s.ID}}">
+                    {{$s.Title}}
+                </button>
+            </h2>
+            <a href="/programs/new?type={{$s.Type}}" class="btn btn-outline-primary btn-sm">➕ New</a>
+        </div>
+        <div id="{{$s.ID}}" class="accordion-collapse collapse{{if eq $i 0}} show{{end}}" data-bs-parent="#programsAccordion">
+            <div class="accordion-body">
+                {{with $s.Programs}}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                        <tr>
+                            <th scope="col">Hour</th>
+                            <th scope="col">Executions</th>
+                            <th scope="col">Fertilizer</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{range .}}
+                        <tr>
+                            <td class="fw-bold">{{.Hour}}</td>
+                            <td>
+                                <div class="d-flex flex-column gap-2">
+                                    {{range .Executions}}{{template "execution" .}}{{end}}
+                                </div>
+                            </td>
+                            <td class="fw-bold">
+                                {{if .Fertilizer}}
+                                <span class="badge bg-success d-inline-flex align-items-center gap-1">
+                                    <span class="material-symbols-outlined" style="font-size:18px;">compost</span>Fertilizer
+                                </span>
+                                {{else}}
+                                <span class="badge bg-primary d-inline-flex align-items-center gap-1">
+                                    <span class="material-symbols-outlined" style="font-size:18px;">water_drop</span>Water
+                                </span>
+                                {{end}}
+                            </td>
+                            <td class="text-end" style="min-width: 70px;">
+                                <form method="POST" action="/programs/delete/{{.Hour}}/{{$s.Type}}"
+                                      onsubmit="return confirm('Are you sure you want to delete all executions for this hour?')">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete all for this hour">
+                                        <span class="material-symbols-outlined">delete</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+                </div>
+                {{else}}
+                <p class="text-muted">No programs</p>
+                {{end}}
+            </div>
+        </div>
+    </div>
+    {{end}}
+
+    <div class="accordion-item border-start border-4 border-secondary">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 text-muted border-bottom px-3 py-2">
+            <h2 class="accordion-header m-0">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseWeekly" aria-expanded="false" aria-controls="collapseWeekly">
+                    Weekly
+                </button>
+            </h2>
+            <a href="/programs/weekly/new" class="btn btn-outline-primary btn-sm">➕ New</a>
+        </div>
+        <div id="collapseWeekly" class="accordion-collapse collapse" data-bs-parent="#programsAccordion">
+            <div class="accordion-body">
+                {{with .Data.Weekly}}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                        <tr>
+                            <th scope="col">Week day</th>
+                            <th scope="col">Executions</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{range .}}
+                        <tr>
+                            <td class="fw-bold text-center text-secondary">{{.WeekDay}}</td>
+                            <td>{{template "hour_programs" .Programs}}</td>
+                            <td class="text-end" style="min-width: 70px;">
+                                <form method="POST" action="/programs/weekly/delete/{{.WeekDay}}"
+                                      onsubmit="return confirm('Are you sure you want to delete all executions for this day?')">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete all for this day">
+                                        <span class="material-symbols-outlined">delete</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+                </div>
+                {{else}}
+                <p class="text-muted">No programs</p>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item border-start border-4 border-secondary">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 text-muted border-bottom px-3 py-2">
+            <h2 class="accordion-header m-0">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseTemperature" aria-expanded="false" aria-controls="collapseTemperature">
+                    Temperature
+                </button>
+            </h2>
+            <a href="/programs/temperature/new" class="btn btn-outline-primary btn-sm">➕ New</a>
+        </div>
+        <div id="collapseTemperature" class="accordion-collapse collapse" data-bs-parent="#programsAccordion">
+            <div class="accordion-body">
+                {{with .Data.Temperature}}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                        <tr>
+                            <th scope="col">Temperature</th>
+                            <th scope="col">Executions</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{range .}}
+                        <tr>
+                            <td class="fw-bold text-center text-secondary">{{.Temperature}} °C</td>
+                            <td>{{template "hour_programs" .Programs}}</td>
+                            <td class="text-end" style="min-width: 70px;">
+                                <form method="POST" action="/programs/temperature/delete/{{.Temperature}}"
+                                      onsubmit="return confirm('Are you sure you want to delete all executions for this temperature?')">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete all for this temperature">
+                                        <span class="material-symbols-outlined">delete</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+                </div>
+                {{else}}
+                <p class="text-muted">No programs</p>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
+{{end}}
+
+{{define "execution"}}
+<div class="p-2 border rounded shadow-sm">
+    <span class="badge bg-secondary me-2">Seconds: {{.Seconds}}</span>
+    <span class="text-muted">Zones: {{join .Zones ", "}}</span>
+</div>
+{{end}}
+
+{{define "hour_programs"}}
+<div class="d-flex flex-column gap-3">
+    {{range .}}
+    <div class="p-3 border rounded shadow-sm">
+        <div class="mb-2">
+            <span class="badge bg-secondary">Hour: {{.Hour}}</span>
+        </div>
+        <div class="d-flex flex-column gap-1 ps-3">
+            {{range .Executions}}
+            <div>
+                <span class="badge bg-secondary me-2">Seconds: {{.Seconds}}</span>
+                <span class="text-muted">Zones: {{join .Zones ", "}}</span>
+            </div>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}

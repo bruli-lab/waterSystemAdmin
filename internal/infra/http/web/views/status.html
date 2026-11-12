@@ -1,0 +1,96 @@
+{{define "content"}}
+<div class="container">
+    <h2 class="text-center my-4">System Status</h2>
+    {{template "alerts" .}}
+    {{with .Status}}
+    <div class="row g-4 justify-content-center">
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card border-secondary shadow-sm">
+                <div class="card-body text-center bg-secondary bg-opacity-25">
+                    <h5 class="card-title">System started at</h5>
+                    <p class="card-text text-muted">{{.SystemStartedAt.Format "02 Jan 2006 15:04:05"}}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card border-info shadow-sm">
+                <div class="card-body text-center bg-primary bg-opacity-25">
+                    <h5 class="card-title">Current temperature</h5>
+                    <p class="card-text display-6">{{printf "%.1f" .Temperature}} °C</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card border-warning shadow-sm">
+                {{if and .IsRaining .IsDay}}
+                <div class="card-body text-center bg-secondary bg-opacity-25">
+                    <h5 class="card-title">Weather</h5>
+                    <span class="fs-1 text-primary">🌧️</span>
+                    <p class="text-muted">Raining (Day)</p>
+                </div>
+                {{else if .IsRaining}}
+                <div class="card-body text-center bg-dark bg-opacity-25 text-light">
+                    <h5 class="card-title">Weather</h5>
+                    <span class="fs-1 text-light">🌧️</span>
+                    <p class="text-light">Raining (Night)</p>
+                </div>
+                {{else if .IsDay}}
+                <div class="card-body text-center bg-warning bg-opacity-25">
+                    <h5 class="card-title">Weather</h5>
+                    <span class="fs-1 text-warning">☀️</span>
+                    <p class="text-muted">Sunny (Day)</p>
+                </div>
+                {{else}}
+                <div class="card-body text-center bg-primary bg-opacity-25 text-light">
+                    <h5 class="card-title">Weather</h5>
+                    <span class="fs-1 text-light">🌙</span>
+                    <p class="text-light">Clear (Night)</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card border-secondary shadow-sm">
+                <div class="card-body text-center bg-secondary bg-opacity-25">
+                    <h5 class="card-title">System updated at</h5>
+                    <p class="card-text text-muted">{{.UpdatedAt.Format "02 Jan 2006 15:04:05"}}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card border-info shadow-sm">
+                <div class="card-body text-center bg-primary bg-opacity-25">
+                    <h5 class="card-title">Current humidity</h5>
+                    <p class="card-text display-6">{{printf "%.1f" .Humidity}} %</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card border-success shadow-sm">
+                <div class="card-body text-center {{if .Active}}bg-success{{else}}bg-danger{{end}} bg-opacity-25">
+                    <h5 class="card-title">Active</h5>
+                    {{if .Active}}
+                    <form method="POST" action="/deactivate">
+                        <button class="btn btn-outline-danger" type="submit">🟢 System ON – Click to turn OFF</button>
+                    </form>
+                    {{else}}
+                    <form method="POST" action="/activate">
+                        <button class="btn btn-outline-danger" type="submit">🔴 System OFF – Click to turn ON</button>
+                    </form>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+    {{end}}
+
+    <form method="POST" action="/update-status" class="d-flex justify-content-center mt-4">
+        <button type="submit" class="btn btn-primary btn-lg shadow w-100 w-md-auto">🔄 Update</button>
+    </form>
+</div>
+{{end}}

@@ -1,0 +1,252 @@
+package web
+
+import (
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"strconv"
+
+	"github.com/bruli/waterSystemAdmin/internal/domain/programs"
+	"github.com/bruli/waterSystemAdmin/internal/domain/zones"
+)
+
+type programSection struct {
+	ID, Title, Type string
+	Programs        []programs.FertilizerProgram
+}
+
+type programsPage struct {
+	Sections    []programSection
+	Weekly      []programs.Weekly
+	Temperature programs.Temperature
+	Loaded      bool
+}
+
+func (a *App) Programs(w http.ResponseWriter, r *http.Request) {
+	v := view{Template: "programs.html", Page: "programs"}
+	all, err := a.api.Programs.FindAll(r.Context())
+	if err != nil {
+		a.log.ErrorContext(r.Context(), "error finding programs", slog.String("error", err.Error()))
+		v.Error = "Could not read the programs: " + err.Error()
+		v.Data = programsPage{}
+		a.render(w, r, &v)
+		return
+	}
+	v.Data = programsPage{
+		Sections: []programSection{
+			{ID: "collapseDaily", Title: "Daily", Type: programs.DailyProgramType.String(), Programs: all.Daily},
+			{ID: "collapseOdd", Title: "Odd", Type: programs.OddProgramType.String(), Programs: all.Odd},
+			{ID: "collapseEven", Title: "Even", Type: programs.EvenProgramType.String(), Programs: all.Even},
+		},
+		Weekly:      all.Weekly,
+		Temperature: all.Temperature,
+		Loaded:      true,
+	}
+	a.render(w, r, &v)
+}
+
+type programForm struct {
+	Kind  string
+	Zones []zones.Zone
+}
+
+func (a *App) formView(w http.ResponseWriter, r *http.Request, template, kind string) (view, bool) {
+	list, err := a.api.Zones.FindAll(r.Context())
+	if err != nil {
+		a.failure(w, r, "/programs", "Could not read the zones", err)
+		return view{}, false
+	}
+	v := view{Template: template, Page: "programs", Data: programForm{Kind: kind, Zones: list}}
+	if len(list) == 0 {
+		v.Error = "There are no zones configured."
+	}
+	return v, true
+}
+
+func (a *App) CreateProgram(w http.ResponseWriter, r *http.Request) {
+	progType, err := programs.ParseProgramType(r.URL.Query().Get("type"))
+	if err != nil {
+		a.failure(w, r, "/programs", "Invalid program type", err)
+		return
+	}
+	v, ok := a.formView(w, r, "program_form.html", progType.String())
+	if !ok {
+		return
+	}
+	if r.Method != http.MethodPost {
+		a.render(w, r, &v)
+		return
+	}
+	p, err := parseFertilizerProgram(r)
+	if err == nil {
+		err = a.api.Programs.Save(r.Context(), p, progType)
+	}
+	if err != nil {
+		a.log.ErrorContext(r.Context(), "error creating program", slog.String("error", err.Error()))
+		v.Error = "Could not create the program: " + err.Error()
+		a.render(w, r, &v)
+		return
+	}
+	a.success(w, r, "/programs", fmt.Sprintf("%s program at %s created.", progType, p.Hour))
+}
+
+func (a *App) CreateWeeklyProgram(w http.ResponseWriter, r *http.Request) {
+	v, ok := a.formView(w, r, "program_hours_form.html", "weekly")
+	if !ok {
+		return
+	}
+	if r.Method != http.MethodPost {
+		a.render(w, r, &v)
+		return
+	}
+	day, err := programs.ParseWeekDay(r.FormValue("day"))
+	var prgms []programs.Program
+	if err == nil {
+		prgms, err = parseHourPrograms(r)
+	}
+	if err == nil {
+		err = a.api.Weekly.Save(r.Context(), &programs.Weekly{WeekDay: day, Programs: prgms})
+	}
+	if err != nil {
+		a.log.ErrorContext(r.Context(), "error creating weekly program", slog.String("error", err.Error()))
+		v.Error = "Could not create the program: " + err.Error()
+		a.render(w, r, &v)
+		return
+	}
+	a.success(w, r, "/programs", fmt.Sprintf("Weekly program for %s created.", day))
+}
+
+func (a *App) CreateTemperatureProgram(w http.ResponseWriter, r *http.Request) {
+	v, ok := a.formView(w, r, "program_hours_form.html", "temperature")
+	if !ok {
+		return
+	}
+	if r.Method != http.MethodPost {
+		a.render(w, r, &v)
+		return
+	}
+	temp, err := strconv.Atoi(r.FormValue("temperature"))
+	var prgms []programs.Program
+	if err != nil {
+		err = errors.New("invalid temperature")
+	} else {
+		prgms, err = parseHourPrograms(r)
+	}
+	if err == nil {
+		err = a.api.Temperature.Save(r.Context(), &programs.TemperatureProgram{Temperature: temp, Programs: prgms})
+	}
+	if err != nil {
+		a.log.ErrorContext(r.Context(), "error creating temperature program", slog.String("error", err.Error()))
+		v.Error = "Could not create the program: " + err.Error()
+		a.render(w, r, &v)
+		return
+	}
+	a.success(w, r, "/programs", fmt.Sprintf("Program for %d °C created.", temp))
+}
+
+func (a *App) RemoveProgram(w http.ResponseWriter, r *http.Request) {
+	hour, err := programs.ParseHour(r.PathValue("hour"))
+	if err != nil {
+		a.failure(w, r, "/programs", "Invalid hour", err)
+		return
+	}
+	progType, err := programs.ParseProgramType(r.PathValue("type"))
+	if err != nil {
+		a.failure(w, r, "/programs", "Invalid program type", err)
+		return
+	}
+	if err = a.api.Programs.Remove(r.Context(), &hour, progType); err != nil {
+		a.failure(w, r, "/programs", "Could not delete the program", err)
+		return
+	}
+	a.success(w, r, "/programs", fmt.Sprintf("%s program at %s deleted.", progType, hour))
+}
+
+func (a *App) RemoveWeeklyProgram(w http.ResponseWriter, r *http.Request) {
+	day, err := programs.ParseWeekDay(r.PathValue("weekday"))
+	if err != nil {
+		a.failure(w, r, "/programs", "Invalid day", err)
+		return
+	}
+	if err = a.api.Weekly.Remove(r.Context(), &day); err != nil {
+		a.failure(w, r, "/programs", "Could not delete the program", err)
+		return
+	}
+	a.success(w, r, "/programs", fmt.Sprintf("Weekly program for %s deleted.", day))
+}
+
+func (a *App) RemoveTemperatureProgram(w http.ResponseWriter, r *http.Request) {
+	temp, err := strconv.Atoi(r.PathValue("temperature"))
+	if err != nil {
+		a.failure(w, r, "/programs", "Invalid temperature", err)
+		return
+	}
+	if err = a.api.Temperature.Remove(r.Context(), temp); err != nil {
+		a.failure(w, r, "/programs", "Could not delete the program", err)
+		return
+	}
+	a.success(w, r, "/programs", fmt.Sprintf("Program for %d °C deleted.", temp))
+}
+
+func parseFertilizerProgram(r *http.Request) (*programs.FertilizerProgram, error) {
+	if err := r.ParseForm(); err != nil {
+		return nil, errors.New("invalid form")
+	}
+	hour, err := programs.ParseHour(r.FormValue("hour"))
+	if err != nil {
+		return nil, errors.New("invalid hour")
+	}
+	fertilizer, _ := strconv.ParseBool(r.FormValue("fertilizer"))
+	execs, err := parseExecutions(r.Form["seconds[]"], func(i int) []string {
+		return r.Form[fmt.Sprintf("zones_%d[]", i)]
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &programs.FertilizerProgram{Executions: execs, Hour: hour, Fertilizer: fertilizer}, nil
+}
+
+func parseHourPrograms(r *http.Request) ([]programs.Program, error) {
+	if err := r.ParseForm(); err != nil {
+		return nil, errors.New("invalid form")
+	}
+	hours := r.Form["hours[]"]
+	if len(hours) == 0 {
+		return nil, errors.New("add at least one hour")
+	}
+	prgms := make([]programs.Program, len(hours))
+	for h, hourValue := range hours {
+		hour, err := programs.ParseHour(hourValue)
+		if err != nil {
+			return nil, fmt.Errorf("invalid hour: %q", hourValue)
+		}
+		execs, err := parseExecutions(r.Form[fmt.Sprintf("executions_%d_seconds[]", h)], func(n int) []string {
+			return r.Form[fmt.Sprintf("executions_%d_zones_%d[]", h, n)]
+		})
+		if err != nil {
+			return nil, fmt.Errorf("hour %s: %w", hourValue, err)
+		}
+		prgms[h] = programs.Program{Executions: execs, Hour: hour}
+	}
+	return prgms, nil
+}
+
+func parseExecutions(seconds []string, zonesOf func(i int) []string) ([]programs.Execution, error) {
+	if len(seconds) == 0 {
+		return nil, errors.New("add at least one execution")
+	}
+	execs := make([]programs.Execution, len(seconds))
+	for i, sec := range seconds {
+		s, err := strconv.Atoi(sec)
+		if err != nil || s <= 0 {
+			return nil, fmt.Errorf("execution %d: seconds must be a positive number", i+1)
+		}
+		zoneIDs := zonesOf(i)
+		if len(zoneIDs) == 0 {
+			return nil, fmt.Errorf("execution %d: select at least one zone", i+1)
+		}
+		execs[i] = programs.Execution{Seconds: s, Zones: zoneIDs}
+	}
+	return execs, nil
+}

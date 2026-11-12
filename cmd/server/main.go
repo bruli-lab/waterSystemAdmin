@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -13,22 +12,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bruli/waterSystemAdmin/internal/domain/password"
-	"github.com/bruli/waterSystemAdmin/internal/infra/disk"
-
-	"github.com/gorilla/sessions"
-
-	"github.com/bruli/waterSystemAdmin/internal/domain/execution"
-	"github.com/bruli/waterSystemAdmin/internal/domain/logs"
-	"github.com/bruli/waterSystemAdmin/internal/domain/programs"
-	"github.com/bruli/waterSystemAdmin/internal/domain/zones"
-	"github.com/bruli/waterSystemAdmin/internal/infra/http/templates"
-
 	"github.com/bruli/waterSystemAdmin/internal/config"
-	"github.com/bruli/waterSystemAdmin/internal/domain/status"
 	"github.com/bruli/waterSystemAdmin/internal/infra/api"
-	"github.com/bruli/waterSystemAdmin/internal/infra/http/controller"
-	pongo2 "github.com/flosch/pongo2/v6"
+	"github.com/bruli/waterSystemAdmin/internal/infra/disk"
+	"github.com/bruli/waterSystemAdmin/internal/infra/http/web"
+	"github.com/gorilla/sessions"
 )
 
 const serviceName = "waterSystemAdmin"
@@ -50,57 +38,56 @@ func run() error {
 	}
 	log := buildLog(conf.LogLevel)
 
-	cl := api.NewClient(conf.ApiAuthKey, conf.ApiUrl, 5*time.Second)
-	statusRepo := api.NewStatusRepository(cl)
-	logsRepo := api.NewLogRepository(cl)
-	programsRepo := api.NewAllProgramsRepository(cl)
-	executionRepo := api.NewExecuteZoneRepository(cl)
-	activateRepo := api.NewActivateRepository(cl)
-	zoneRepo := api.NewZoneRepository(cl)
-	weeklyRepo := api.NewWeeklyRepository(cl)
-	tempRepo := api.NewTemperatureRepository(cl)
-	passwordRepo := disk.NewPasswordRepository(conf.PasswordFile)
-
-	findZones := zones.NewFindZones(zoneRepo)
-	passwordExists := password.NewExists(passwordRepo)
-
-	tplSet := pongo2.NewSet("embed", templates.NewEmbedLoader(templates.FS, "."))
-
 	sessionStore, err := buildSessionStore(conf.SessionKey, log)
 	if err != nil {
 		log.Error("failed to build session store", slog.String("error", err.Error()))
 		return err
 	}
 
-	authMdw := controller.AuthMiddleware(sessionStore, passwordExists, log)
+	cl := api.NewClient(conf.ApiAuthKey, conf.ApiUrl, 5*time.Second)
+	app, err := web.NewApp(web.API{
+		Status:      api.NewStatusRepository(cl),
+		Activate:    api.NewActivateRepository(cl),
+		Zones:       api.NewZoneRepository(cl),
+		Execute:     api.NewExecuteZoneRepository(cl),
+		Logs:        api.NewLogRepository(cl),
+		Programs:    api.NewAllProgramsRepository(cl),
+		Weekly:      api.NewWeeklyRepository(cl),
+		Temperature: api.NewTemperatureRepository(cl),
+	}, disk.NewPasswordRepository(conf.PasswordFile), sessionStore, log)
+	if err != nil {
+		log.Error("failed to build web app", slog.String("error", err.Error()))
+		return err
+	}
 
-	staticFiles, _ := fs.Sub(templates.FS, "static")
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
+	auth := app.RequireAuth
+	http.Handle("GET /static/", web.Static())
 
-	findStatus := status.NewFindStatus(statusRepo)
+	http.HandleFunc("/login", app.Login)
+	http.HandleFunc("GET /logout", app.Logout)
+	http.HandleFunc("/password", app.Password)
 
-	http.HandleFunc("/{$}", authMdw(controller.FindStatus(tplSet, findStatus, log)))
-	http.HandleFunc("/logs", authMdw(controller.FindLogs(tplSet, logs.NewFindLogs(logsRepo), findStatus, log)))
-	http.HandleFunc("/update-status", authMdw(controller.UpdateStatus(status.NewUpdateStatus(statusRepo), log)))
-	http.HandleFunc("/programs", authMdw(controller.Programs(tplSet, programs.NewFindAllPrograms(programsRepo), findStatus, log)))
-	http.HandleFunc("/programs/new", authMdw(controller.CreateProgram(tplSet, findZones, programs.NewCreate(programsRepo), findStatus, log)))
-	http.HandleFunc("/programs/delete/{hour}/{type}", authMdw(controller.RemoveProgram(tplSet, findStatus, programs.NewRemove(programsRepo), log)))
-	http.HandleFunc("/programs/weekly/new", authMdw(controller.CreateWeeklyProgram(tplSet, findZones, findStatus, programs.NewCreateWeekly(weeklyRepo), log)))
-	http.HandleFunc("/programs/weekly/delete/{weekday}", authMdw(controller.RemoveWeeklyProgram(tplSet, findStatus, programs.NewRemoveWeekly(weeklyRepo), log)))
-	http.HandleFunc("/programs/temperature/new", authMdw(controller.CreateTemperatureProgram(tplSet, findZones, findStatus, programs.NewCreateTemperature(tempRepo), log)))
-	http.HandleFunc("/programs/temperature/delete/{temperature}", authMdw(controller.RemoveTemperatureProgram(tplSet, findStatus, programs.NewRemoveTemperature(tempRepo), log)))
-	http.HandleFunc("/zones", authMdw(controller.Zones(tplSet, findZones, findStatus, log)))
-	http.HandleFunc("/execution/{id}", authMdw(controller.Execution(tplSet, execution.NewExecuteZone(executionRepo), findStatus, log)))
-	http.HandleFunc("/fertilizer/{id}", authMdw(controller.Fertilizer(tplSet, execution.NewExecuteZone(executionRepo), findStatus, log)))
-	http.HandleFunc("/clean/{id}", authMdw(controller.Clean(execution.NewClean(executionRepo), log)))
-	http.HandleFunc("/deactivate", authMdw(controller.Deactivate(status.NewActivateDeactivate(activateRepo), log)))
-	http.HandleFunc("/activate", authMdw(controller.Activate(status.NewActivateDeactivate(activateRepo), log)))
-	http.HandleFunc("/zones/new", authMdw(controller.CreateZone(tplSet, zones.NewCreate(zoneRepo), findStatus, log)))
-	http.HandleFunc("/zones/{id}/delete", authMdw(controller.DeleteZone(zones.NewDelete(zoneRepo), log)))
-	http.HandleFunc("/zones/{id}/edit", authMdw(controller.UpdateZone(tplSet, findZones, zones.NewUpdate(zoneRepo), findStatus, log)))
-	http.HandleFunc("/login", controller.Login(tplSet, sessionStore, password.NewCheck(passwordRepo), findStatus, log))
-	http.HandleFunc("/logout", controller.Logout(sessionStore, log))
-	http.HandleFunc("/password", controller.Password(tplSet, password.NewCreate(passwordRepo), passwordExists, log))
+	http.HandleFunc("GET /{$}", auth(app.Status))
+	http.HandleFunc("POST /activate", auth(app.Activate))
+	http.HandleFunc("POST /deactivate", auth(app.Deactivate))
+	http.HandleFunc("POST /update-status", auth(app.UpdateStatus))
+	http.HandleFunc("GET /logs", auth(app.Logs))
+
+	http.HandleFunc("GET /zones", auth(app.Zones))
+	http.HandleFunc("/zones/new", auth(app.CreateZone))
+	http.HandleFunc("/zones/{id}/edit", auth(app.UpdateZone))
+	http.HandleFunc("POST /zones/{id}/delete", auth(app.DeleteZone))
+	http.HandleFunc("/execution/{id}", auth(app.Execute))
+	http.HandleFunc("/fertilizer/{id}", auth(app.Fertilizer))
+	http.HandleFunc("POST /clean/{id}", auth(app.Clean))
+
+	http.HandleFunc("GET /programs", auth(app.Programs))
+	http.HandleFunc("/programs/new", auth(app.CreateProgram))
+	http.HandleFunc("POST /programs/delete/{hour}/{type}", auth(app.RemoveProgram))
+	http.HandleFunc("/programs/weekly/new", auth(app.CreateWeeklyProgram))
+	http.HandleFunc("POST /programs/weekly/delete/{weekday}", auth(app.RemoveWeeklyProgram))
+	http.HandleFunc("/programs/temperature/new", auth(app.CreateTemperatureProgram))
+	http.HandleFunc("POST /programs/temperature/delete/{temperature}", auth(app.RemoveTemperatureProgram))
 
 	srv := &http.Server{
 		Addr:    conf.ServerURL,

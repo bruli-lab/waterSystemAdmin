@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-	_ "time/tzdata" // embed the tz database so Europe/Madrid always loads
+	_ "time/tzdata"
 )
 
 var madrid = loadMadrid()

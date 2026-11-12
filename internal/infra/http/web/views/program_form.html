@@ -1,0 +1,73 @@
+{{define "content"}}
+<div class="container">
+    <h2 class="text-center my-4">Create New {{.Data.Kind}} program</h2>
+    {{template "alerts" .}}
+
+    <form id="programForm" action="/programs/new?type={{.Data.Kind}}" method="POST"
+          class="p-4 border rounded shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="mb-3">
+            <label for="hour" class="form-label">Hour</label>
+            <input type="time" class="form-control" id="hour" name="hour" required>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="fertilizer" name="fertilizer" value="true">
+            <label class="form-check-label" for="fertilizer">With fertilizer</label>
+        </div>
+
+        <div id="executions"></div>
+
+        <div class="mb-3 text-end">
+            <button type="button" class="btn btn-outline-secondary" onclick="addExecution()">➕ Add Execution</button>
+        </div>
+
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary"{{if not .Data.Zones}} disabled{{end}}>Create Program</button>
+        </div>
+    </form>
+</div>
+
+<template id="executionTpl">
+    <div class="execution border rounded p-3 mb-3 position-relative">
+        <button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2"
+                onclick="removeExecution(this)">🗑️</button>
+        <div class="mb-3">
+            <label class="form-label">Seconds</label>
+            <input type="number" min="1" class="form-control" name="seconds[]" required>
+        </div>
+        <label class="form-label">Zones</label>
+        <div class="row">
+            {{range .Data.Zones}}
+            <div class="col-6 col-sm-4 col-md-3">
+                <label class="form-check">
+                    <input class="form-check-input" type="checkbox" data-zone value="{{.ID}}">
+                    <span class="form-check-label">{{.Name}}</span>
+                </label>
+            </div>
+            {{end}}
+        </div>
+    </div>
+</template>
+
+<script>
+    const executions = document.getElementById('executions');
+
+    function addExecution() {
+        executions.appendChild(document.getElementById('executionTpl').content.cloneNode(true));
+    }
+
+    function removeExecution(button) {
+        if (executions.children.length > 1) {
+            button.closest('.execution').remove();
+        }
+    }
+
+    document.getElementById('programForm').addEventListener('submit', () => {
+        executions.querySelectorAll('.execution').forEach((group, i) => {
+            group.querySelectorAll('[data-zone]').forEach(cb => cb.name = `zones_${i}[]`);
+        });
+    });
+
+    addExecution();
+</script>
+{{end}}
