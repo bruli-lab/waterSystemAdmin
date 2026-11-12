@@ -24,6 +24,10 @@ var viewsFS embed.FS
 var staticFS embed.FS
 
 const (
+	pageStatus   = "status"
+	pageLogs     = "logs"
+	pageZones    = "zones"
+	pagePrograms = "programs"
 	sessionName  = "session"
 	flashSuccess = "flash_success"
 	flashError   = "flash_error"
@@ -125,20 +129,24 @@ type view struct {
 	NoStatus bool
 }
 
+func (a *App) loadStatus(r *http.Request, pd *pageData) {
+	st, err := a.api.Status.Find(r.Context())
+	if err != nil {
+		a.log.ErrorContext(r.Context(), "error reading status", slog.String("error", err.Error()))
+		if pd.Error == "" {
+			pd.Error = "Could not read the system status."
+		}
+		return
+	}
+	pd.Status = st
+}
+
 func (a *App) render(w http.ResponseWriter, r *http.Request, v *view) {
 	ctx := r.Context()
 	pd := pageData{Page: v.Page, Data: v.Data, Error: v.Error}
 
 	if !v.NoStatus {
-		st, err := a.api.Status.Find(ctx)
-		if err != nil {
-			a.log.ErrorContext(ctx, "error reading status", slog.String("error", err.Error()))
-			if pd.Error == "" {
-				pd.Error = "Could not read the system status."
-			}
-		} else {
-			pd.Status = st
-		}
+		a.loadStatus(r, &pd)
 	}
 
 	success, flashErr := a.popFlashes(w, r)

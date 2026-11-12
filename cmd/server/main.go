@@ -60,38 +60,10 @@ func run() error {
 		return err
 	}
 
-	auth := app.RequireAuth
-	http.Handle("GET /static/", web.Static())
-
-	http.HandleFunc("/login", app.Login)
-	http.HandleFunc("GET /logout", app.Logout)
-	http.HandleFunc("/password", app.Password)
-
-	http.HandleFunc("GET /{$}", auth(app.Status))
-	http.HandleFunc("POST /activate", auth(app.Activate))
-	http.HandleFunc("POST /deactivate", auth(app.Deactivate))
-	http.HandleFunc("POST /update-status", auth(app.UpdateStatus))
-	http.HandleFunc("GET /logs", auth(app.Logs))
-
-	http.HandleFunc("GET /zones", auth(app.Zones))
-	http.HandleFunc("/zones/new", auth(app.CreateZone))
-	http.HandleFunc("/zones/{id}/edit", auth(app.UpdateZone))
-	http.HandleFunc("POST /zones/{id}/delete", auth(app.DeleteZone))
-	http.HandleFunc("/execution/{id}", auth(app.Execute))
-	http.HandleFunc("/fertilizer/{id}", auth(app.Fertilizer))
-	http.HandleFunc("POST /clean/{id}", auth(app.Clean))
-
-	http.HandleFunc("GET /programs", auth(app.Programs))
-	http.HandleFunc("/programs/new", auth(app.CreateProgram))
-	http.HandleFunc("POST /programs/delete/{hour}/{type}", auth(app.RemoveProgram))
-	http.HandleFunc("/programs/weekly/new", auth(app.CreateWeeklyProgram))
-	http.HandleFunc("POST /programs/weekly/delete/{weekday}", auth(app.RemoveWeeklyProgram))
-	http.HandleFunc("/programs/temperature/new", auth(app.CreateTemperatureProgram))
-	http.HandleFunc("POST /programs/temperature/delete/{temperature}", auth(app.RemoveTemperatureProgram))
-
 	srv := &http.Server{
-		Addr:    conf.ServerURL,
-		Handler: nil,
+		Addr:              conf.ServerURL,
+		Handler:           routes(app),
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	errCh := make(chan error)
@@ -115,6 +87,39 @@ func run() error {
 	}
 
 	return nil
+}
+
+func routes(app *web.App) *http.ServeMux {
+	mux := http.NewServeMux()
+	auth := app.RequireAuth
+	mux.Handle("GET /static/", web.Static())
+
+	mux.HandleFunc("/login", app.Login)
+	mux.HandleFunc("GET /logout", app.Logout)
+	mux.HandleFunc("/password", app.Password)
+
+	mux.HandleFunc("GET /{$}", auth(app.Status))
+	mux.HandleFunc("POST /activate", auth(app.Activate))
+	mux.HandleFunc("POST /deactivate", auth(app.Deactivate))
+	mux.HandleFunc("POST /update-status", auth(app.UpdateStatus))
+	mux.HandleFunc("GET /logs", auth(app.Logs))
+
+	mux.HandleFunc("GET /zones", auth(app.Zones))
+	mux.HandleFunc("/zones/new", auth(app.CreateZone))
+	mux.HandleFunc("/zones/{id}/edit", auth(app.UpdateZone))
+	mux.HandleFunc("POST /zones/{id}/delete", auth(app.DeleteZone))
+	mux.HandleFunc("/execution/{id}", auth(app.Execute))
+	mux.HandleFunc("/fertilizer/{id}", auth(app.Fertilizer))
+	mux.HandleFunc("POST /clean/{id}", auth(app.Clean))
+
+	mux.HandleFunc("GET /programs", auth(app.Programs))
+	mux.HandleFunc("/programs/new", auth(app.CreateProgram))
+	mux.HandleFunc("POST /programs/delete/{hour}/{type}", auth(app.RemoveProgram))
+	mux.HandleFunc("/programs/weekly/new", auth(app.CreateWeeklyProgram))
+	mux.HandleFunc("POST /programs/weekly/delete/{weekday}", auth(app.RemoveWeeklyProgram))
+	mux.HandleFunc("/programs/temperature/new", auth(app.CreateTemperatureProgram))
+	mux.HandleFunc("POST /programs/temperature/delete/{temperature}", auth(app.RemoveTemperatureProgram))
+	return mux
 }
 
 func runServer(ctx context.Context, log *slog.Logger, conf *config.Config, srv *http.Server) error {

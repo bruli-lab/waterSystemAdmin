@@ -20,7 +20,7 @@ type zonesPage struct {
 }
 
 func (a *App) Zones(w http.ResponseWriter, r *http.Request) {
-	v := view{Template: "zones.html", Page: "zones"}
+	v := view{Template: "zones.html", Page: pageZones}
 	list, err := a.api.Zones.FindAll(r.Context())
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error finding zones", slog.String("error", err.Error()))
@@ -55,7 +55,7 @@ type zoneForm struct {
 }
 
 func (a *App) CreateZone(w http.ResponseWriter, r *http.Request) {
-	v := view{Template: "zone_form.html", Page: "zones", Data: zoneForm{Relays: availableRelays}}
+	v := view{Template: "zone_form.html", Page: pageZones, Data: zoneForm{Relays: availableRelays}}
 	if r.Method != http.MethodPost {
 		a.render(w, r, &v)
 		return
@@ -77,7 +77,7 @@ func (a *App) CreateZone(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) UpdateZone(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	v := view{Template: "zone_form.html", Page: "zones"}
+	v := view{Template: "zone_form.html", Page: pageZones}
 	if r.Method == http.MethodPost {
 		z, err := parseZoneForm(r, id)
 		if err == nil {
@@ -143,7 +143,7 @@ func (a *App) Fertilizer(w http.ResponseWriter, r *http.Request) { a.executeZone
 
 func (a *App) executeZone(w http.ResponseWriter, r *http.Request, fertilizer bool) {
 	id := r.PathValue("id")
-	v := view{Template: "execute.html", Page: "zones", Data: executeForm{ZoneID: id, Fertilizer: fertilizer}}
+	v := view{Template: "execute.html", Page: pageZones, Data: executeForm{ZoneID: id, Fertilizer: fertilizer}}
 	if r.Method != http.MethodPost {
 		a.render(w, r, &v)
 		return

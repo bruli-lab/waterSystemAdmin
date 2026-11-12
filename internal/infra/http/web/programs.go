@@ -24,7 +24,7 @@ type programsPage struct {
 }
 
 func (a *App) Programs(w http.ResponseWriter, r *http.Request) {
-	v := view{Template: "programs.html", Page: "programs"}
+	v := view{Template: "programs.html", Page: pagePrograms}
 	all, err := a.api.Programs.FindAll(r.Context())
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error finding programs", slog.String("error", err.Error()))
@@ -57,7 +57,7 @@ func (a *App) formView(w http.ResponseWriter, r *http.Request, template, kind st
 		a.failure(w, r, "/programs", "Could not read the zones", err)
 		return view{}, false
 	}
-	v := view{Template: template, Page: "programs", Data: programForm{Kind: kind, Zones: list}}
+	v := view{Template: template, Page: pagePrograms, Data: programForm{Kind: kind, Zones: list}}
 	if len(list) == 0 {
 		v.Error = "There are no zones configured."
 	}

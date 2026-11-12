@@ -1,11 +1,7 @@
 package api
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/bruli/waterSystemAdmin/internal/domain/programs"
@@ -16,93 +12,44 @@ type ProgramsRepository struct {
 }
 
 func (a ProgramsRepository) Remove(ctx context.Context, hour *programs.Hour, t *programs.TypeProgram) error {
-	url := fmt.Sprintf("http://%s/programs/%s/%s", a.cl.apiURL, t.String(), hour.String())
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, http.NoBody)
-	if err != nil {
-		return fmt.Errorf("failed to create request to delete program: %w", err)
-	}
-	req.Header.Add("Authorization", a.cl.token)
-	resp, err := a.cl.cl.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed sending the request to delete program: %w", err)
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to delete program. Request not accepted: %v", resp.StatusCode)
-	}
-	return nil
+	return a.cl.do(ctx, http.MethodDelete, "/programs/"+t.String()+"/"+hour.String(), nil, nil)
 }
 
 func (a ProgramsRepository) Save(ctx context.Context, p *programs.FertilizerProgram, t *programs.TypeProgram) error {
-	url := fmt.Sprintf("http://%s/programs/%s", a.cl.apiURL, t.String())
-
-	body, _ := json.Marshal(a.buildFertilizerProgramDTO(p))
-	var buff bytes.Buffer
-	buff.Write(body)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &buff)
-	if err != nil {
-		return fmt.Errorf("failed to create request to create program: %w", err)
+	dto := FertilizerProgram{
+		Executions: toExecutionDTOs(p.Executions),
+		Hour:       p.Hour.String(),
+		Fertilizer: p.Fertilizer,
 	}
-	req.Header.Add("Authorization", a.cl.token)
-	resp, err := a.cl.cl.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed sending the request to create program: %w", err)
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to create program. Request not accepted: %v", resp.StatusCode)
-	}
-	return nil
+	return a.cl.do(ctx, http.MethodPost, "/programs/"+t.String(), dto, nil)
 }
 
 func (a ProgramsRepository) FindAll(ctx context.Context) (*programs.Programs, error) {
-	url := fmt.Sprintf("http://%s/programs", a.cl.apiURL)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request to read programs: %w", err)
-	}
-	req.Header.Add("Authorization", a.cl.token)
-	resp, err := a.cl.cl.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed sending the request to read programs: %w", err)
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to read programs. Request not accepted: %v", resp.StatusCode)
-	}
 	var prms Programs
-	data, _ := io.ReadAll(resp.Body)
-	if err = json.Unmarshal(data, &prms); err != nil {
-		return nil, fmt.Errorf("failed to unmarshall programs: %w", err)
+	if err := a.cl.do(ctx, http.MethodGet, "/programs", nil, &prms); err != nil {
+		return nil, err
 	}
-	return a.buildAllPrograms(&prms)
+	return buildAllPrograms(&prms)
 }
 
-func (a ProgramsRepository) buildAllPrograms(data *Programs) (*programs.Programs, error) {
-	daily, err := a.buildFertilizerPrograms(data.Daily)
+func buildAllPrograms(data *Programs) (*programs.Programs, error) {
+	daily, err := buildFertilizerPrograms(data.Daily)
 	if err != nil {
 		return nil, err
 	}
-	temp, err := a.buildTemperaturePrograms(data.Temperature)
+	odd, err := buildFertilizerPrograms(data.Odd)
 	if err != nil {
 		return nil, err
 	}
-	odd, err := a.buildFertilizerPrograms(data.Odd)
+	even, err := buildFertilizerPrograms(data.Even)
 	if err != nil {
 		return nil, err
 	}
-	even, err := a.buildFertilizerPrograms(data.Even)
+	temp, err := buildTemperaturePrograms(data.Temperature)
 	if err != nil {
 		return nil, err
 	}
-	weekly, err := a.buildWeeklyPrograms(data.Weekly)
+	weekly, err := buildWeeklyPrograms(data.Weekly)
 	if err != nil {
 		return nil, err
 	}
@@ -115,98 +62,84 @@ func (a ProgramsRepository) buildAllPrograms(data *Programs) (*programs.Programs
 	}, nil
 }
 
-func (a ProgramsRepository) buildPrograms(data []Program) ([]programs.Program, error) {
-	daily := make([]programs.Program, len(data))
-	for i, day := range data {
-		hour, err := programs.ParseHour(day.Hour)
+func buildExecutions(data []Execution) []programs.Execution {
+	exec := make([]programs.Execution, len(data))
+	for i, e := range data {
+		exec[i] = programs.Execution{Seconds: e.Seconds, Zones: e.Zones}
+	}
+	return exec
+}
+
+func buildPrograms(data []Program) ([]programs.Program, error) {
+	result := make([]programs.Program, len(data))
+	for i, p := range data {
+		hour, err := programs.ParseHour(p.Hour)
 		if err != nil {
 			return nil, err
 		}
-		exec := make([]programs.Execution, len(day.Executions))
-		for j, e := range day.Executions {
-			exec[j] = programs.Execution{
-				Seconds: e.Seconds,
-				Zones:   e.Zones,
-			}
+		result[i] = programs.Program{Executions: buildExecutions(p.Executions), Hour: hour}
+	}
+	return result, nil
+}
+
+func buildFertilizerPrograms(data []FertilizerProgram) ([]programs.FertilizerProgram, error) {
+	result := make([]programs.FertilizerProgram, len(data))
+	for i, p := range data {
+		hour, err := programs.ParseHour(p.Hour)
+		if err != nil {
+			return nil, err
 		}
-		daily[i] = programs.Program{
-			Executions: exec,
+		result[i] = programs.FertilizerProgram{
+			Executions: buildExecutions(p.Executions),
 			Hour:       hour,
+			Fertilizer: p.Fertilizer,
 		}
 	}
-	return daily, nil
+	return result, nil
 }
 
-func (a ProgramsRepository) buildFertilizerPrograms(data []FertilizerProgram) ([]programs.FertilizerProgram, error) {
-	daily := make(programs.Daily, len(data))
-	for i, day := range data {
-		hour, err := programs.ParseHour(day.Hour)
+func buildTemperaturePrograms(data []TemperatureProgram) (programs.Temperature, error) {
+	result := make(programs.Temperature, len(data))
+	for i, t := range data {
+		prgms, err := buildPrograms(t.Programs)
 		if err != nil {
 			return nil, err
 		}
-		exec := make([]programs.Execution, len(day.Executions))
-		for j, e := range day.Executions {
-			exec[j] = programs.Execution{
-				Seconds: e.Seconds,
-				Zones:   e.Zones,
-			}
-		}
-		daily[i] = programs.FertilizerProgram{
-			Executions: exec,
-			Hour:       hour,
-			Fertilizer: day.Fertilizer,
-		}
+		result[i] = programs.TemperatureProgram{Programs: prgms, Temperature: t.Temperature}
 	}
-	return daily, nil
+	return result, nil
 }
 
-func (a ProgramsRepository) buildTemperaturePrograms(progs []TemperatureProgram) (programs.Temperature, error) {
-	temp := make(programs.Temperature, len(progs))
-	for i, prog := range progs {
-		progm, err := a.buildPrograms(prog.Programs)
+func buildWeeklyPrograms(data []ProgramWeekly) ([]programs.Weekly, error) {
+	result := make([]programs.Weekly, len(data))
+	for i, w := range data {
+		day, err := programs.ParseWeekDay(w.WeekDay)
 		if err != nil {
 			return nil, err
 		}
-		temp[i] = programs.TemperatureProgram{
-			Programs:    progm,
-			Temperature: prog.Temperature,
-		}
-	}
-	return temp, nil
-}
-
-func (a ProgramsRepository) buildWeeklyPrograms(progms []ProgramWeekly) ([]programs.Weekly, error) {
-	week := make([]programs.Weekly, len(progms))
-	for i, we := range progms {
-		day, err := programs.ParseWeekDay(we.WeekDay)
+		prgms, err := buildPrograms(w.Programs)
 		if err != nil {
 			return nil, err
 		}
-		progm, err := a.buildPrograms(we.Programs)
-		if err != nil {
-			return nil, err
-		}
-		week[i] = programs.Weekly{
-			WeekDay:  day,
-			Programs: progm,
-		}
+		result[i] = programs.Weekly{WeekDay: day, Programs: prgms}
 	}
-	return week, nil
+	return result, nil
 }
 
-func (a ProgramsRepository) buildFertilizerProgramDTO(p *programs.FertilizerProgram) FertilizerProgram {
-	exec := make([]Execution, len(p.Executions))
-	for i, e := range p.Executions {
-		exec[i] = Execution{
-			Seconds: e.Seconds,
-			Zones:   e.Zones,
-		}
+func toExecutionDTOs(execs []programs.Execution) []Execution {
+	result := make([]Execution, len(execs))
+	for i, e := range execs {
+		result[i] = Execution{Seconds: e.Seconds, Zones: e.Zones}
 	}
-	return FertilizerProgram{
-		Executions: exec,
-		Hour:       p.Hour.String(),
-		Fertilizer: p.Fertilizer,
+	return result
+}
+
+func toProgramDTOs(prgms []programs.Program) []Program {
+	result := make([]Program, len(prgms))
+	for i, p := range prgms {
+		result[i] = Program{Executions: toExecutionDTOs(p.Executions), Hour: p.Hour.String()}
 	}
+	return result
 }
 
 func NewAllProgramsRepository(cl *Client) *ProgramsRepository {
