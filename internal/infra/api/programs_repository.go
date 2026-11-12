@@ -24,12 +24,12 @@ func (a ProgramsRepository) Remove(ctx context.Context, hour *programs.Hour, t *
 	}
 	req.Header.Add("Authorization", a.cl.token)
 	resp, err := a.cl.cl.Do(req)
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to delete program: %w", err)
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to delete program. Request not accepted: %v", resp.StatusCode)
 	}
@@ -48,12 +48,12 @@ func (a ProgramsRepository) Save(ctx context.Context, p *programs.FertilizerProg
 	}
 	req.Header.Add("Authorization", a.cl.token)
 	resp, err := a.cl.cl.Do(req)
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to create program: %w", err)
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to create program. Request not accepted: %v", resp.StatusCode)
 	}

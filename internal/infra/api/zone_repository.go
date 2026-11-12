@@ -23,12 +23,12 @@ func (r ZoneRepository) Delete(ctx context.Context, id string) error {
 	}
 	req.Header.Add("Authorization", r.cl.token)
 	resp, err := r.cl.cl.Do(req)
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 	if err != nil {
 		return fmt.Errorf("failed doing the request to delete zone: %s", err.Error())
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to delete zone. Request no accepted: Status code %v", resp.StatusCode)
 	}
@@ -43,12 +43,12 @@ func (r ZoneRepository) FindAll(ctx context.Context) ([]zones.Zone, error) {
 	}
 	req.Header.Add("Authorization", r.cl.token)
 	resp, err := r.cl.cl.Do(req)
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 	if err != nil {
 		return nil, fmt.Errorf("failed doing the request to find zones: %s", err.Error())
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("failed to find zones. Request no accepted: Status code %v", resp.StatusCode)
 	}
@@ -80,12 +80,12 @@ func (r ZoneRepository) Create(ctx context.Context, z *zones.Zone) error {
 	if err != nil {
 		return fmt.Errorf("failed doing the request to create zone: %s", err.Error())
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusBadRequest {
 			msg, _ := io.ReadAll(resp.Body)
-			defer func() {
-				_ = resp.Body.Close()
-			}()
 			return fmt.Errorf("failed to create zone. Request no accepted: %s", string(msg))
 		}
 		return fmt.Errorf("failed to create zone. Request no accepted: Status code %v", resp.StatusCode)
@@ -112,12 +112,12 @@ func (r ZoneRepository) Update(ctx context.Context, z *zones.Zone) error {
 	if err != nil {
 		return fmt.Errorf("failed doing the request to update zone: %s", err.Error())
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusBadRequest {
 			msg, _ := io.ReadAll(resp.Body)
-			defer func() {
-				_ = resp.Body.Close()
-			}()
 			return fmt.Errorf("failed to updated zone. Request no accepted: %s", string(msg))
 		}
 		return fmt.Errorf("failed to updated zone. Request no accepted: Status code %v", resp.StatusCode)

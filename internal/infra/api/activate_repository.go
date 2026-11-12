@@ -22,12 +22,12 @@ func (a ActivateRepository) Activate(ctx context.Context, activate bool) error {
 	}
 	req.Header.Add("Authorization", a.cl.token)
 	resp, err := a.cl.cl.Do(req)
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 	if err != nil {
 		return fmt.Errorf("failed doing the request to execute %s acion: %w", action, err)
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to execute %s action. Request no accepted: %w", action, err)
 	}

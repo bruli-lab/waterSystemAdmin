@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -64,7 +65,11 @@ func run() error {
 
 	tplSet := pongo2.NewSet("embed", templates.NewEmbedLoader(templates.FS, "."))
 
-	sessionStore := sessions.NewCookieStore([]byte("clau-secreta-super-segura"))
+	sessionStore, err := buildSessionStore(conf.SessionKey, log)
+	if err != nil {
+		log.Error("failed to build session store", slog.String("error", err.Error()))
+		return err
+	}
 
 	authMdw := controller.AuthMiddleware(sessionStore, passwordExists, log)
 
@@ -94,7 +99,7 @@ func run() error {
 	http.HandleFunc("/zones/{id}/edit", authMdw(controller.UpdateZone(tplSet, findZones, zones.NewUpdate(zoneRepo), findStatus, log)))
 	http.HandleFunc("/login", controller.Login(tplSet, sessionStore, password.NewCheck(passwordRepo), findStatus, log))
 	http.HandleFunc("/logout", controller.Logout(sessionStore, log))
-	http.HandleFunc("/password", controller.Password(tplSet, password.NewCreate(passwordRepo), log))
+	http.HandleFunc("/password", controller.Password(tplSet, password.NewCreate(passwordRepo), passwordExists, log))
 
 	srv := &http.Server{
 		Addr:    conf.ServerURL,
@@ -131,6 +136,25 @@ func runServer(ctx context.Context, log *slog.Logger, conf *config.Config, srv *
 		return err
 	}
 	return nil
+}
+
+func buildSessionStore(key string, log *slog.Logger) (*sessions.CookieStore, error) {
+	k := []byte(key)
+	if len(k) == 0 {
+		log.Warn("SESSION_KEY not set, using a random key: sessions will not survive restarts")
+		k = make([]byte, 32)
+		if _, err := rand.Read(k); err != nil {
+			return nil, err
+		}
+	}
+	store := sessions.NewCookieStore(k)
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 30,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	return store, nil
 }
 
 func buildLog(level string) *slog.Logger {

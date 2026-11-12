@@ -24,12 +24,12 @@ func (w TemperatureRepository) Remove(ctx context.Context, temperature int) erro
 	}
 	req.Header.Add("Authorization", w.cl.token)
 	resp, err := w.cl.cl.Do(req)
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to delete temperature program: %w", err)
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		data, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("failed to delete temperature program. Request not accepted: %v. Error: %s", resp.StatusCode, string(data))
@@ -49,12 +49,12 @@ func (w TemperatureRepository) Save(ctx context.Context, p *programs.Temperature
 	}
 	req.Header.Add("Authorization", w.cl.token)
 	resp, err := w.cl.cl.Do(req)
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to create temperature program: %w", err)
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		data, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("failed to create temperature program. Request not accepted: %v. Error: %s", resp.StatusCode, string(data))

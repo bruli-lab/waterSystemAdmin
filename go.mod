@@ -1,6 +1,6 @@
 module github.com/bruli/waterSystemAdmin
 
-go 1.26.3
+go 1.27.4
 
 require (
 	github.com/flosch/pongo2 v0.0.0-20200913210552-0d938eb266f3
@@ -8,7 +8,6 @@ require (
 	github.com/gorilla/sessions v1.4.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	golang.org/x/crypto v0.50.0
-	golang.org/x/net v0.53.0
 )
 
 require (

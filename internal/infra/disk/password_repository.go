@@ -31,7 +31,7 @@ func (p PasswordRepository) Save(ctx context.Context, pass *password.Password) e
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
-		return os.WriteFile(p.filePath, []byte(pass.Hash()), 0o755)
+		return os.WriteFile(p.filePath, []byte(pass.Hash()), 0o600)
 	}
 }
 

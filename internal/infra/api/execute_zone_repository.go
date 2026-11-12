@@ -23,12 +23,12 @@ func (e ExecuteZoneRepository) SendClean(ctx context.Context, id string) error {
 	}
 	req.Header.Add("Authorization", e.cl.token)
 	resp, err := e.cl.cl.Do(req)
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 	if err != nil {
 		return fmt.Errorf("failed doing the request to execute clean zone: %w", err)
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to execute zone. Request no accepted: %w", err)
 	}
@@ -51,12 +51,12 @@ func (e ExecuteZoneRepository) execution(ctx context.Context, exe *execution.Exe
 	}
 	req.Header.Add("Authorization", e.cl.token)
 	resp, err := e.cl.cl.Do(req)
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 	if err != nil {
 		return fmt.Errorf("failed doing the request to execute zone: %w", err)
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to execute zone. Reques no accepted: %w", err)
 	}

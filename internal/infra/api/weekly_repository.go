@@ -25,12 +25,12 @@ func (w WeeklyRepository) Remove(ctx context.Context, day *programs.WeekDay) err
 	}
 	req.Header.Add("Authorization", w.cl.token)
 	resp, err := w.cl.cl.Do(req)
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to delete weekly program: %w", err)
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		data, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("failed to delete weekly program. Request not accepted: %v. Error: %s", resp.StatusCode, string(data))
@@ -50,12 +50,12 @@ func (w WeeklyRepository) Save(ctx context.Context, p *programs.Weekly) error {
 	}
 	req.Header.Add("Authorization", w.cl.token)
 	resp, err := w.cl.cl.Do(req)
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 	if err != nil {
 		return fmt.Errorf("failed sending the request to create weekly program: %w", err)
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusOK {
 		data, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("failed to create weekly program. Request not accepted: %v. Error: %s", resp.StatusCode, string(data))
