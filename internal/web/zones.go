@@ -147,9 +147,9 @@ func (a *App) executeZone(w http.ResponseWriter, r *http.Request, fertilizer boo
 		a.render(w, r, &v)
 		return
 	}
-	seconds, err := strconv.Atoi(r.FormValue("seconds"))
-	if err != nil || seconds <= 0 {
-		v.Error = "Seconds must be a positive number."
+	seconds, err := parseSeconds(r.FormValue("seconds"))
+	if err != nil {
+		v.Error = err.Error()
 		a.render(w, r, &v)
 		return
 	}

@@ -89,7 +89,7 @@ func run() error {
 	return nil
 }
 
-func routes(app *web.App) *http.ServeMux {
+func routes(app *web.App) http.Handler {
 	mux := http.NewServeMux()
 	auth := app.RequireAuth
 	mux.Handle("GET /static/", web.Static())
@@ -119,7 +119,7 @@ func routes(app *web.App) *http.ServeMux {
 	mux.HandleFunc("POST /programs/weekly/delete/{weekday}", auth(app.RemoveWeeklyProgram))
 	mux.HandleFunc("/programs/temperature/new", auth(app.CreateTemperatureProgram))
 	mux.HandleFunc("POST /programs/temperature/delete/{temperature}", auth(app.RemoveTemperatureProgram))
-	return mux
+	return http.NewCrossOriginProtection().Handler(mux)
 }
 
 func runServer(ctx context.Context, log *slog.Logger, conf *config.Config, srv *http.Server) error {

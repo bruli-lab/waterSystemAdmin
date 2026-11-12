@@ -33,7 +33,7 @@
                 onclick="removeExecution(this)">🗑️</button>
         <div class="mb-3">
             <label class="form-label">Seconds</label>
-            <input type="number" min="1" class="form-control" name="seconds[]" required>
+            <input type="number" min="1" max="{{maxSeconds}}" class="form-control" name="seconds[]" required>
         </div>
         <label class="form-label">Zones</label>
         <div class="row">

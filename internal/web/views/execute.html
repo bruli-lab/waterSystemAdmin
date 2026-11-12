@@ -14,7 +14,7 @@
 
             <div class="mb-3">
                 <label for="seconds" class="form-label">Seconds</label>
-                <input type="number" min="1" class="form-control text-center" id="seconds" name="seconds" required>
+                <input type="number" min="1" max="{{maxSeconds}}" class="form-control text-center" id="seconds" name="seconds" required>
             </div>
 
             <button type="submit" class="btn btn-primary w-100"{{if .Cleaning}} disabled{{end}}>Execute</button>

@@ -238,9 +238,9 @@ func parseExecutions(seconds []string, zonesOf func(i int) []string) ([]programs
 	}
 	execs := make([]programs.Execution, len(seconds))
 	for i, sec := range seconds {
-		s, err := strconv.Atoi(sec)
-		if err != nil || s <= 0 {
-			return nil, fmt.Errorf("execution %d: seconds must be a positive number", i+1)
+		s, err := parseSeconds(sec)
+		if err != nil {
+			return nil, fmt.Errorf("execution %d: %w", i+1, err)
 		}
 		zoneIDs := zonesOf(i)
 		if len(zoneIDs) == 0 {
@@ -249,4 +249,12 @@ func parseExecutions(seconds []string, zonesOf func(i int) []string) ([]programs
 		execs[i] = programs.Execution{Seconds: s, Zones: zoneIDs}
 	}
 	return execs, nil
+}
+
+func parseSeconds(value string) (int, error) {
+	s, err := strconv.Atoi(value)
+	if err != nil || s < 1 || s > maxSeconds {
+		return 0, fmt.Errorf("seconds must be between 1 and %d", maxSeconds)
+	}
+	return s, nil
 }

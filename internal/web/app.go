@@ -31,6 +31,7 @@ const (
 	sessionName  = "session"
 	flashSuccess = "flash_success"
 	flashError   = "flash_error"
+	maxSeconds   = 120
 )
 
 type API struct {
@@ -83,9 +84,10 @@ var templateFuncs = template.FuncMap{
 	"navItem": func(current, page, href, icon, label string) navLink {
 		return navLink{Active: current == page, Href: href, Icon: icon, Label: label}
 	},
-	"join":     strings.Join,
-	"lower":    strings.ToLower,
-	"contains": slices.Contains[[]int],
+	"join":       strings.Join,
+	"lower":      strings.ToLower,
+	"contains":   slices.Contains[[]int],
+	"maxSeconds": func() int { return maxSeconds },
 }
 
 func parsePages() (map[string]*template.Template, error) {
