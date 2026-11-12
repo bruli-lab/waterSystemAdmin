@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/bruli/waterSystemAdmin/internal/model/programs"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/programs"
 )
 
 type ProgramsRepository struct {

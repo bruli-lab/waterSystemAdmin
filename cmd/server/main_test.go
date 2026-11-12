@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bruli/waterSystemAdmin/internal/disk"
-	"github.com/bruli/waterSystemAdmin/internal/web"
+	"github.com/bruli-lab/waterSystemAdmin/internal/disk"
+	"github.com/bruli-lab/waterSystemAdmin/internal/web"
 	"github.com/gorilla/sessions"
 )
 

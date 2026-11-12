@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strconv"
 
-	"github.com/bruli/waterSystemAdmin/internal/model/zones"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/zones"
 )
 
 var availableRelays = []int{1, 2, 3}

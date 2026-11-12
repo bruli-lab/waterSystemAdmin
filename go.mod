@@ -1,4 +1,4 @@
-module github.com/bruli/waterSystemAdmin
+module github.com/bruli-lab/waterSystemAdmin
 
 go 1.27.4
 

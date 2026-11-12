@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/bruli/waterSystemAdmin/internal/model/zones"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/zones"
 )
 
 type ExecuteZoneRepository struct {

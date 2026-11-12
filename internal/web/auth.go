@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/bruli/waterSystemAdmin/internal/model/password"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/password"
 )
 
 func (a *App) RequireAuth(next http.HandlerFunc) http.HandlerFunc {

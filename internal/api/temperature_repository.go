@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/bruli/waterSystemAdmin/internal/model/programs"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/programs"
 )
 
 type TemperatureRepository struct {

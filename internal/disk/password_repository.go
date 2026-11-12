@@ -6,7 +6,7 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/bruli/waterSystemAdmin/internal/model/password"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/password"
 )
 
 type PasswordRepository struct {

@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bruli/waterSystemAdmin/internal/model/programs"
-	"github.com/bruli/waterSystemAdmin/internal/model/zones"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/programs"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/zones"
 )
 
 const testToken = "secret-token"

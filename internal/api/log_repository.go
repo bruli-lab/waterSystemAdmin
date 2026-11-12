@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/bruli/waterSystemAdmin/internal/model/logs"
-	"github.com/bruli/waterSystemAdmin/internal/model/vo"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/logs"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/vo"
 )
 
 type LogRepository struct {

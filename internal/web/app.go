@@ -11,9 +11,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/bruli/waterSystemAdmin/internal/api"
-	"github.com/bruli/waterSystemAdmin/internal/disk"
-	"github.com/bruli/waterSystemAdmin/internal/model/status"
+	"github.com/bruli-lab/waterSystemAdmin/internal/api"
+	"github.com/bruli-lab/waterSystemAdmin/internal/disk"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/status"
 	"github.com/gorilla/sessions"
 )
 
