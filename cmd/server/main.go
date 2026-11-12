@@ -93,6 +93,7 @@ func routes(app *web.App) http.Handler {
 	mux := http.NewServeMux()
 	auth := app.RequireAuth
 	mux.Handle("GET /static/", web.Static())
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 
 	mux.HandleFunc("/login", app.Login)
 	mux.HandleFunc("GET /logout", app.Logout)

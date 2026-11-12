@@ -1,0 +1,10 @@
+.git
+.github
+.idea
+docs
+manifests
+tmp
+CLAUDE.md
+docker-compose.yml
+Dockerfile.dev
+.air.toml

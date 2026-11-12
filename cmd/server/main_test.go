@@ -42,3 +42,17 @@ func TestRoutesRejectCrossOriginPosts(t *testing.T) {
 		})
 	}
 }
+
+func TestHealthz(t *testing.T) {
+	passwordRepo := disk.NewPasswordRepository(filepath.Join(t.TempDir(), "password"))
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	app, err := web.NewApp(web.API{}, passwordRepo, sessions.NewCookieStore([]byte("test-key")), logger)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rec := httptest.NewRecorder()
+	routes(app).ServeHTTP(rec, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/healthz", http.NoBody))
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+}

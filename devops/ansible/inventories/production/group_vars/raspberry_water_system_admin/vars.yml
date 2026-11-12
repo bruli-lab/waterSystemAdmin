@@ -1,3 +1,0 @@
----
-auth_token: "{{ auth_token_vault }}"
-session_key: "{{ session_key_vault }}"
