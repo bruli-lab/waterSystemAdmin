@@ -27,35 +27,33 @@
                     </div>
                 </div>
 
-                <div class="d-flex flex-wrap justify-content-end justify-content-sm-end gap-2 mt-3">
+                <div class="d-flex flex-wrap gap-2 mt-3">
                     <a href="/execution/{{.ID}}"
-                       class="btn btn-primary btn-sm{{if $cleaning}} disabled{{end}}"
-                       title="Execute"
-                       {{if $cleaning}}aria-disabled="true" style="pointer-events: none;"{{end}}>
-                        <span class="material-symbols-outlined">sprinkler</span>
+                       class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1{{if $cleaning}} disabled{{end}}"
+                       {{if $cleaning}}aria-disabled="true" tabindex="-1"{{end}}>
+                        <span class="material-symbols-outlined">sprinkler</span>Water
                     </a>
                     <a href="/fertilizer/{{.ID}}"
-                       class="btn btn-success btn-sm{{if $cleaning}} disabled{{end}}"
-                       title="Fertilizer"
-                       {{if $cleaning}}aria-disabled="true" style="pointer-events: none;"{{end}}>
-                        <span class="material-symbols-outlined">yard</span>
+                       class="btn btn-success btn-sm d-inline-flex align-items-center gap-1{{if $cleaning}} disabled{{end}}"
+                       {{if $cleaning}}aria-disabled="true" tabindex="-1"{{end}}>
+                        <span class="material-symbols-outlined">yard</span>Fertilizer
                     </a>
-
                     <form method="POST" action="/clean/{{.ID}}"
-                          onsubmit="return confirm('Estàs segur que vols executar la neteja?')">
-                        <button type="submit" class="btn btn-info btn-sm" title="Clean"{{if $cleaning}} disabled{{end}}>
-                            <span class="material-symbols-outlined">cleaning_services</span>
+                          onsubmit="return confirm('Start the clean process for {{.Name}}?')">
+                        <button type="submit" class="btn btn-info btn-sm d-inline-flex align-items-center gap-1"{{if $cleaning}} disabled{{end}}>
+                            <span class="material-symbols-outlined">cleaning_services</span>Clean
                         </button>
                     </form>
+                </div>
 
-                    <a href="/zones/{{.ID}}/edit" class="btn btn-warning btn-sm" title="Update">
-                        <span class="material-symbols-outlined">edit</span>
+                <div class="d-flex flex-wrap gap-2 mt-2 pt-2 border-top">
+                    <a href="/zones/{{.ID}}/edit" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
+                        <span class="material-symbols-outlined">edit</span>Edit
                     </a>
-
                     <form method="POST" action="/zones/{{.ID}}/delete"
-                          onsubmit="return confirm('Estàs segur que vols eliminar aquesta zona?')">
-                        <button type="submit" class="btn btn-danger btn-sm" title="Delete">
-                            <span class="material-symbols-outlined">delete</span>
+                          onsubmit="return confirm('Delete the zone {{.Name}}?')">
+                        <button type="submit" class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined">delete</span>Delete
                         </button>
                     </form>
                 </div>

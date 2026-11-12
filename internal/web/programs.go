@@ -12,8 +12,8 @@ import (
 )
 
 type programSection struct {
-	ID, Title, Type string
-	Programs        []programs.FertilizerProgram
+	Title, Type string
+	Programs    []programs.FertilizerProgram
 }
 
 type programsPage struct {
@@ -24,7 +24,7 @@ type programsPage struct {
 }
 
 func (a *App) Programs(w http.ResponseWriter, r *http.Request) {
-	v := view{Template: "programs.html", Page: pagePrograms}
+	v := view{Template: "programs.html", Page: pagePrograms, Title: "Programs"}
 	all, err := a.api.Programs.FindAll(r.Context())
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error finding programs", slog.String("error", err.Error()))
@@ -35,9 +35,9 @@ func (a *App) Programs(w http.ResponseWriter, r *http.Request) {
 	}
 	v.Data = programsPage{
 		Sections: []programSection{
-			{ID: "collapseDaily", Title: "Daily", Type: programs.DailyProgramType.String(), Programs: all.Daily},
-			{ID: "collapseOdd", Title: "Odd", Type: programs.OddProgramType.String(), Programs: all.Odd},
-			{ID: "collapseEven", Title: "Even", Type: programs.EvenProgramType.String(), Programs: all.Even},
+			{Title: "Daily", Type: programs.DailyProgramType.String(), Programs: all.Daily},
+			{Title: "Odd", Type: programs.OddProgramType.String(), Programs: all.Odd},
+			{Title: "Even", Type: programs.EvenProgramType.String(), Programs: all.Even},
 		},
 		Weekly:      all.Weekly,
 		Temperature: all.Temperature,
@@ -51,13 +51,23 @@ type programForm struct {
 	Zones []zones.Zone
 }
 
+func programsURL(section string) string {
+	return "/programs#" + section
+}
+
 func (a *App) formView(w http.ResponseWriter, r *http.Request, template, kind string) (view, bool) {
 	list, err := a.api.Zones.FindAll(r.Context())
 	if err != nil {
-		a.failure(w, r, "/programs", "Could not read the zones", err)
+		a.failure(w, r, programsURL(kind), "Could not read the zones", err)
 		return view{}, false
 	}
-	v := view{Template: template, Page: pagePrograms, Data: programForm{Kind: kind, Zones: list}}
+	v := view{
+		Template: template,
+		Page:     pagePrograms,
+		Title:    "New " + kind + " program",
+		Back:     &link{Href: programsURL(kind), Label: "Programs"},
+		Data:     programForm{Kind: kind, Zones: list},
+	}
 	if len(list) == 0 {
 		v.Error = "There are no zones configured."
 	}
@@ -88,7 +98,7 @@ func (a *App) CreateProgram(w http.ResponseWriter, r *http.Request) {
 		a.render(w, r, &v)
 		return
 	}
-	a.success(w, r, "/programs", fmt.Sprintf("%s program at %s created.", progType, p.Hour))
+	a.success(w, r, programsURL(progType.String()), fmt.Sprintf("%s program at %s created.", progType, p.Hour))
 }
 
 func (a *App) CreateWeeklyProgram(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +124,7 @@ func (a *App) CreateWeeklyProgram(w http.ResponseWriter, r *http.Request) {
 		a.render(w, r, &v)
 		return
 	}
-	a.success(w, r, "/programs", fmt.Sprintf("Weekly program for %s created.", day))
+	a.success(w, r, programsURL("weekly"), fmt.Sprintf("Weekly program for %s created.", day))
 }
 
 func (a *App) CreateTemperatureProgram(w http.ResponseWriter, r *http.Request) {
@@ -142,7 +152,7 @@ func (a *App) CreateTemperatureProgram(w http.ResponseWriter, r *http.Request) {
 		a.render(w, r, &v)
 		return
 	}
-	a.success(w, r, "/programs", fmt.Sprintf("Program for %d °C created.", temp))
+	a.success(w, r, programsURL("temperature"), fmt.Sprintf("Program for %d °C created.", temp))
 }
 
 func (a *App) RemoveProgram(w http.ResponseWriter, r *http.Request) {
@@ -157,36 +167,36 @@ func (a *App) RemoveProgram(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err = a.api.Programs.Remove(r.Context(), &hour, progType); err != nil {
-		a.failure(w, r, "/programs", "Could not delete the program", err)
+		a.failure(w, r, programsURL(progType.String()), "Could not delete the program", err)
 		return
 	}
-	a.success(w, r, "/programs", fmt.Sprintf("%s program at %s deleted.", progType, hour))
+	a.success(w, r, programsURL(progType.String()), fmt.Sprintf("%s program at %s deleted.", progType, hour))
 }
 
 func (a *App) RemoveWeeklyProgram(w http.ResponseWriter, r *http.Request) {
 	day, err := programs.ParseWeekDay(r.PathValue("weekday"))
 	if err != nil {
-		a.failure(w, r, "/programs", "Invalid day", err)
+		a.failure(w, r, programsURL("weekly"), "Invalid day", err)
 		return
 	}
 	if err = a.api.Weekly.Remove(r.Context(), &day); err != nil {
-		a.failure(w, r, "/programs", "Could not delete the program", err)
+		a.failure(w, r, programsURL("weekly"), "Could not delete the program", err)
 		return
 	}
-	a.success(w, r, "/programs", fmt.Sprintf("Weekly program for %s deleted.", day))
+	a.success(w, r, programsURL("weekly"), fmt.Sprintf("Weekly program for %s deleted.", day))
 }
 
 func (a *App) RemoveTemperatureProgram(w http.ResponseWriter, r *http.Request) {
 	temp, err := strconv.Atoi(r.PathValue("temperature"))
 	if err != nil {
-		a.failure(w, r, "/programs", "Invalid temperature", err)
+		a.failure(w, r, programsURL("temperature"), "Invalid temperature", err)
 		return
 	}
 	if err = a.api.Temperature.Remove(r.Context(), temp); err != nil {
-		a.failure(w, r, "/programs", "Could not delete the program", err)
+		a.failure(w, r, programsURL("temperature"), "Could not delete the program", err)
 		return
 	}
-	a.success(w, r, "/programs", fmt.Sprintf("Program for %d °C deleted.", temp))
+	a.success(w, r, programsURL("temperature"), fmt.Sprintf("Program for %d °C deleted.", temp))
 }
 
 func parseFertilizerProgram(r *http.Request) (*programs.FertilizerProgram, error) {

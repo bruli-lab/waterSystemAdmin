@@ -75,6 +75,12 @@ func Static() http.Handler {
 	return http.StripPrefix("/static/", http.FileServer(http.FS(sub)))
 }
 
+type formButtons struct {
+	Back     *link
+	Label    string
+	Disabled bool
+}
+
 type navLink struct {
 	Active            bool
 	Href, Icon, Label string
@@ -88,6 +94,9 @@ var templateFuncs = template.FuncMap{
 	"lower":      strings.ToLower,
 	"contains":   slices.Contains[[]int],
 	"maxSeconds": func() int { return maxSeconds },
+	"buttons": func(back *link, label string, disabled bool) formButtons {
+		return formButtons{Back: back, Label: label, Disabled: disabled}
+	},
 }
 
 func parsePages() (map[string]*template.Template, error) {
@@ -110,21 +119,29 @@ func parsePages() (map[string]*template.Template, error) {
 	return pages, nil
 }
 
+type link struct {
+	Href, Label string
+}
+
 type pageData struct {
 	Page    string
+	Title   string
+	Back    *link
 	Status  *status.Status
 	Error   string
 	Success string
 	Data    any
 }
 
-func (p pageData) Dark() bool { return p.Status == nil || !p.Status.IsDay }
+func (p *pageData) Dark() bool { return p.Status == nil || !p.Status.IsDay }
 
-func (p pageData) Cleaning() bool { return p.Status != nil && p.Status.Clean }
+func (p *pageData) Cleaning() bool { return p.Status != nil && p.Status.Clean }
 
 type view struct {
 	Template string
 	Page     string
+	Title    string
+	Back     *link
 	Root     string
 	Data     any
 	Error    string
@@ -145,7 +162,7 @@ func (a *App) loadStatus(r *http.Request, pd *pageData) {
 
 func (a *App) render(w http.ResponseWriter, r *http.Request, v *view) {
 	ctx := r.Context()
-	pd := pageData{Page: v.Page, Data: v.Data, Error: v.Error}
+	pd := pageData{Page: v.Page, Title: v.Title, Back: v.Back, Data: v.Data, Error: v.Error}
 
 	if !v.NoStatus {
 		a.loadStatus(r, &pd)
@@ -168,7 +185,7 @@ func (a *App) render(w http.ResponseWriter, r *http.Request, v *view) {
 		root = "layout"
 	}
 	var buf bytes.Buffer
-	if err := tpl.ExecuteTemplate(&buf, root, pd); err != nil {
+	if err := tpl.ExecuteTemplate(&buf, root, &pd); err != nil {
 		a.log.ErrorContext(ctx, "error rendering page", slog.String("template", v.Template), slog.String("error", err.Error()))
 		http.Error(w, "error rendering page", http.StatusInternalServerError)
 		return
@@ -183,7 +200,7 @@ func (a *App) redirectWithFlash(w http.ResponseWriter, r *http.Request, to, key,
 	if err := session.Save(r, w); err != nil {
 		a.log.ErrorContext(r.Context(), "error saving flash", slog.String("error", err.Error()))
 	}
-	http.Redirect(w, r, to, http.StatusSeeOther)
+	http.Redirect(w, r, to, http.StatusSeeOther) //nolint:gosec // targets are internal paths built from validated values
 }
 
 func (a *App) success(w http.ResponseWriter, r *http.Request, to, msg string) {

@@ -34,9 +34,11 @@
                 </div>
             </div>
 
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary">{{if .Data.Edit}}Update Zone{{else}}Create Zone{{end}}</button>
-            </div>
+            {{if .Data.Edit}}
+            {{template "form_buttons" (buttons .Back "Update Zone" false)}}
+            {{else}}
+            {{template "form_buttons" (buttons .Back "Create Zone" false)}}
+            {{end}}
         </form>
     </div>
 </div>
@@ -46,7 +48,7 @@
         const anyChecked = Array.from(this.querySelectorAll('input[name="relays"]')).some(cb => cb.checked);
         if (!anyChecked) {
             e.preventDefault();
-            alert("Cal seleccionar almenys un relay.");
+            alert("Select at least one relay.");
         }
     });
 </script>

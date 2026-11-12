@@ -6,19 +6,19 @@
 
 {{if .Data.Loaded}}
 <div class="accordion" id="programsAccordion">
-    {{range $i, $s := .Data.Sections}}
+    {{range $s := .Data.Sections}}
     <div class="accordion-item border-start border-4 border-secondary">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 text-muted border-bottom px-3 py-2">
+        <div class="d-flex justify-content-between align-items-center gap-2 text-muted border-bottom px-3 py-2">
             <h2 class="accordion-header m-0">
-                <button class="accordion-button{{if ne $i 0}} collapsed{{end}}" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#{{$s.ID}}"
-                        aria-expanded="{{if eq $i 0}}true{{else}}false{{end}}" aria-controls="{{$s.ID}}">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#section-{{$s.Type}}"
+                        aria-expanded="false" aria-controls="section-{{$s.Type}}">
                     {{$s.Title}}
                 </button>
             </h2>
             <a href="/programs/new?type={{$s.Type}}" class="btn btn-outline-primary btn-sm">➕ New</a>
         </div>
-        <div id="{{$s.ID}}" class="accordion-collapse collapse{{if eq $i 0}} show{{end}}" data-bs-parent="#programsAccordion">
+        <div id="section-{{$s.Type}}" class="accordion-collapse collapse" data-section="{{$s.Type}}">
             <div class="accordion-body">
                 {{with $s.Programs}}
                 <div class="table-responsive">
@@ -73,16 +73,16 @@
     {{end}}
 
     <div class="accordion-item border-start border-4 border-secondary">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 text-muted border-bottom px-3 py-2">
+        <div class="d-flex justify-content-between align-items-center gap-2 text-muted border-bottom px-3 py-2">
             <h2 class="accordion-header m-0">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapseWeekly" aria-expanded="false" aria-controls="collapseWeekly">
+                        data-bs-target="#section-weekly" aria-expanded="false" aria-controls="section-weekly">
                     Weekly
                 </button>
             </h2>
             <a href="/programs/weekly/new" class="btn btn-outline-primary btn-sm">➕ New</a>
         </div>
-        <div id="collapseWeekly" class="accordion-collapse collapse" data-bs-parent="#programsAccordion">
+        <div id="section-weekly" class="accordion-collapse collapse" data-section="weekly">
             <div class="accordion-body">
                 {{with .Data.Weekly}}
                 <div class="table-responsive">
@@ -120,16 +120,16 @@
     </div>
 
     <div class="accordion-item border-start border-4 border-secondary">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 text-muted border-bottom px-3 py-2">
+        <div class="d-flex justify-content-between align-items-center gap-2 text-muted border-bottom px-3 py-2">
             <h2 class="accordion-header m-0">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapseTemperature" aria-expanded="false" aria-controls="collapseTemperature">
+                        data-bs-target="#section-temperature" aria-expanded="false" aria-controls="section-temperature">
                     Temperature
                 </button>
             </h2>
             <a href="/programs/temperature/new" class="btn btn-outline-primary btn-sm">➕ New</a>
         </div>
-        <div id="collapseTemperature" class="accordion-collapse collapse" data-bs-parent="#programsAccordion">
+        <div id="section-temperature" class="accordion-collapse collapse" data-section="temperature">
             <div class="accordion-body">
                 {{with .Data.Temperature}}
                 <div class="table-responsive">
@@ -166,6 +166,20 @@
         </div>
     </div>
 </div>
+
+<script>
+    (() => {
+        const sections = document.querySelectorAll('[data-section]');
+        const wanted = location.hash.slice(1);
+        const initial = [...sections].find(el => el.dataset.section === wanted) || sections[0];
+        if (initial) {
+            bootstrap.Collapse.getOrCreateInstance(initial, {toggle: false}).show();
+        }
+        sections.forEach(el => el.addEventListener('shown.bs.collapse', () => {
+            history.replaceState(null, '', '#' + el.dataset.section);
+        }));
+    })();
+</script>
 {{end}}
 {{end}}
 

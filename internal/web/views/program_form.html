@@ -21,9 +21,7 @@
             <button type="button" class="btn btn-outline-secondary" onclick="addExecution()">➕ Add Execution</button>
         </div>
 
-        <div class="d-grid">
-            <button type="submit" class="btn btn-primary"{{if not .Data.Zones}} disabled{{end}}>Create Program</button>
-        </div>
+        {{template "form_buttons" (buttons .Back "Create Program" (not .Data.Zones))}}
     </form>
 </div>
 
