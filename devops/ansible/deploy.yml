@@ -24,6 +24,15 @@
         dest: "{{ binary_path }}"
         mode: 0750
         force: yes
+    - name: Check that the password file exists
+      stat:
+        path: "{{ home }}/password"
+      register: password_file
+    - name: Restrict password file permissions
+      file:
+        path: "{{ home }}/password"
+        mode: 0600
+      when: password_file.stat.exists
     - name: Create service directory if not exists
       file:
         path: "{{ systemd_path }}"
