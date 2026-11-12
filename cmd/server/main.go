@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/bruli/waterSystemAdmin/internal/domain/password"
@@ -39,7 +40,7 @@ func main() {
 }
 
 func run() error {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	conf, err := config.New()
@@ -78,7 +79,7 @@ func run() error {
 
 	findStatus := status.NewFindStatus(statusRepo)
 
-	http.HandleFunc("/", authMdw(controller.FindStatus(tplSet, findStatus, log)))
+	http.HandleFunc("/{$}", authMdw(controller.FindStatus(tplSet, findStatus, log)))
 	http.HandleFunc("/logs", authMdw(controller.FindLogs(tplSet, logs.NewFindLogs(logsRepo), findStatus, log)))
 	http.HandleFunc("/update-status", authMdw(controller.UpdateStatus(status.NewUpdateStatus(statusRepo), log)))
 	http.HandleFunc("/programs", authMdw(controller.Programs(tplSet, programs.NewFindAllPrograms(programsRepo), findStatus, log)))
@@ -95,7 +96,7 @@ func run() error {
 	http.HandleFunc("/deactivate", authMdw(controller.Deactivate(status.NewActivateDeactivate(activateRepo), log)))
 	http.HandleFunc("/activate", authMdw(controller.Activate(status.NewActivateDeactivate(activateRepo), log)))
 	http.HandleFunc("/zones/new", authMdw(controller.CreateZone(tplSet, zones.NewCreate(zoneRepo), findStatus, log)))
-	http.HandleFunc("/zones/{id}/delete", authMdw(controller.DeleteZone(zones.NewDelete(zoneRepo))))
+	http.HandleFunc("/zones/{id}/delete", authMdw(controller.DeleteZone(zones.NewDelete(zoneRepo), log)))
 	http.HandleFunc("/zones/{id}/edit", authMdw(controller.UpdateZone(tplSet, findZones, zones.NewUpdate(zoneRepo), findStatus, log)))
 	http.HandleFunc("/login", controller.Login(tplSet, sessionStore, password.NewCheck(passwordRepo), findStatus, log))
 	http.HandleFunc("/logout", controller.Logout(sessionStore, log))
@@ -171,6 +172,5 @@ func buildLog(level string) *slog.Logger {
 	})
 
 	log := slog.New(handler)
-	log.With("service", serviceName)
-	return log
+	return log.With("service", serviceName)
 }

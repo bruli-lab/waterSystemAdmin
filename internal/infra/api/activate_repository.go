@@ -29,7 +29,7 @@ func (a ActivateRepository) Activate(ctx context.Context, activate bool) error {
 		_ = resp.Body.Close()
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to execute %s action. Request no accepted: %w", action, err)
+		return fmt.Errorf("failed to execute %s action. Request not accepted: status code %d", action, resp.StatusCode)
 	}
 	return nil
 }

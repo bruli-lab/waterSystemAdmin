@@ -30,7 +30,7 @@ func (e ExecuteZoneRepository) SendClean(ctx context.Context, id string) error {
 		_ = resp.Body.Close()
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to execute zone. Request no accepted: %w", err)
+		return fmt.Errorf("failed to execute clean zone. Request not accepted: status code %d", resp.StatusCode)
 	}
 	return nil
 }
@@ -58,7 +58,7 @@ func (e ExecuteZoneRepository) execution(ctx context.Context, exe *execution.Exe
 		_ = resp.Body.Close()
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to execute zone. Reques no accepted: %w", err)
+		return fmt.Errorf("failed to execute zone. Request not accepted: status code %d", resp.StatusCode)
 	}
 	return nil
 }

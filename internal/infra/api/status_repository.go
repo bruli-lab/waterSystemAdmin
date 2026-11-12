@@ -55,7 +55,7 @@ func (s *StatusRepository) Update(ctx context.Context) error {
 		_ = resp.Body.Close()
 	}()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to update status. Request no accepted: %w", err)
+		return fmt.Errorf("failed to update status. Request not accepted: status code %d", resp.StatusCode)
 	}
 	return nil
 }

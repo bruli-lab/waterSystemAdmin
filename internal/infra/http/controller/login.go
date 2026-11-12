@@ -39,8 +39,9 @@ func Login(tplSet *pongo2.TemplateSet, store *sessions.CookieStore, check *passw
 					log.ErrorContext(r.Context(), "error saving session",
 						slog.String("error", err.Error()))
 					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
 				}
-				http.Redirect(w, r, "/status", http.StatusSeeOther)
+				http.Redirect(w, r, "/", http.StatusSeeOther)
 				return
 			default:
 				tplCtx.AddError("Invalid password")

@@ -35,6 +35,7 @@ func RemoveTemperatureProgram(set *pongo3.TemplateSet, stSvc *status.FindStatus,
 		case err != nil:
 			log.ErrorContext(r.Context(), "error removing temperature program",
 				slog.String("error", err.Error()))
+			tplCtx.AddError(err.Error())
 		default:
 			tplCtx.Add("success", true)
 		}

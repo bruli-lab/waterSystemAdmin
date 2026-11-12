@@ -2,6 +2,8 @@ package disk
 
 import (
 	"context"
+	"errors"
+	"io/fs"
 	"os"
 
 	"github.com/bruli/waterSystemAdmin/internal/domain/password"
@@ -41,7 +43,14 @@ func (p PasswordRepository) Exists(ctx context.Context) (bool, error) {
 		return false, ctx.Err()
 	default:
 		_, err := os.Stat(p.filePath)
-		return err == nil || !os.IsNotExist(err), nil
+		switch {
+		case err == nil:
+			return true, nil
+		case errors.Is(err, fs.ErrNotExist):
+			return false, nil
+		default:
+			return false, err
+		}
 	}
 }
 
