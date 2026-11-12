@@ -12,10 +12,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/bruli/waterSystemAdmin/internal/api"
 	"github.com/bruli/waterSystemAdmin/internal/config"
-	"github.com/bruli/waterSystemAdmin/internal/infra/api"
-	"github.com/bruli/waterSystemAdmin/internal/infra/disk"
-	"github.com/bruli/waterSystemAdmin/internal/infra/http/web"
+	"github.com/bruli/waterSystemAdmin/internal/disk"
+	"github.com/bruli/waterSystemAdmin/internal/web"
 	"github.com/gorilla/sessions"
 )
 
