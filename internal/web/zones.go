@@ -27,7 +27,7 @@ func (a *App) Zones(w http.ResponseWriter, r *http.Request) {
 	list, err := a.api.Zones.FindAll(r.Context())
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error finding zones", slog.String("error", err.Error()))
-		v.Error = "Could not read the zones: " + err.Error()
+		v.fail("Could not read the zones", err)
 		v.Data = zonesPage{}
 	} else {
 		v.Data = zonesPage{Zones: list, Loaded: true}
@@ -71,7 +71,8 @@ func (a *App) CreateZone(w http.ResponseWriter, r *http.Request) {
 	}
 	if err = a.api.Zones.Create(r.Context(), &z); err != nil {
 		a.log.ErrorContext(r.Context(), "error creating zone", slog.String("error", err.Error()))
-		v.Error, v.Data = "Could not create the zone: "+err.Error(), zoneForm{Zone: z, Relays: availableRelays}
+		v.fail("Could not create the zone", err)
+		v.Data = zoneForm{Zone: z, Relays: availableRelays}
 		a.render(w, r, &v)
 		return
 	}
@@ -83,16 +84,19 @@ func (a *App) UpdateZone(w http.ResponseWriter, r *http.Request) {
 	v := view{Template: "zone_form.html", Page: pageZones, Title: "Edit zone", Back: zonesLink}
 	if r.Method == http.MethodPost {
 		z, err := parseZoneForm(r, id)
-		if err == nil {
-			err = a.api.Zones.Update(r.Context(), &z)
-			if err == nil {
-				a.success(w, r, "/zones", fmt.Sprintf("Zone %q updated.", z.Name))
-				return
-			}
-			a.log.ErrorContext(r.Context(), "error updating zone", slog.String("error", err.Error()))
+		v.Data = zoneForm{Zone: z, Relays: availableRelays, Edit: true}
+		if err != nil {
+			v.Error = err.Error()
+			a.render(w, r, &v)
+			return
 		}
-		v.Error, v.Data = err.Error(), zoneForm{Zone: z, Relays: availableRelays, Edit: true}
-		a.render(w, r, &v)
+		if err = a.api.Zones.Update(r.Context(), &z); err != nil {
+			a.log.ErrorContext(r.Context(), "error updating zone", slog.String("error", err.Error()))
+			v.fail("Could not update the zone", err)
+			a.render(w, r, &v)
+			return
+		}
+		a.success(w, r, "/zones", fmt.Sprintf("Zone %q updated.", z.Name))
 		return
 	}
 
@@ -188,7 +192,7 @@ func (a *App) executeZone(w http.ResponseWriter, r *http.Request, fertilizer boo
 	}
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error executing zone", slog.String("id", zone.ID), slog.String("error", err.Error()))
-		v.Error = "Could not execute the zone: " + err.Error()
+		v.fail("Could not execute the zone", err)
 		a.render(w, r, &v)
 		return
 	}

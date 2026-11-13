@@ -383,3 +383,19 @@ func TestFindProgramsInvalidData(t *testing.T) {
 		})
 	}
 }
+
+func TestDoUnavailable(t *testing.T) {
+	srv := httptest.NewServer(http.NotFoundHandler())
+	addr := strings.TrimPrefix(srv.URL, "http://")
+	srv.Close()
+	cl := NewClient(testToken, addr, time.Second)
+	err := cl.do(context.Background(), http.MethodGet, "/status", nil, nil)
+	if !errors.Is(err, ErrUnavailable) {
+		t.Fatalf("expected ErrUnavailable, got %v", err)
+	}
+
+	_, ok := newFakeAPI(t, http.StatusInternalServerError, "boom")
+	if err = ok.do(context.Background(), http.MethodGet, "/status", nil, nil); errors.Is(err, ErrUnavailable) {
+		t.Fatalf("status errors must not be ErrUnavailable: %v", err)
+	}
+}

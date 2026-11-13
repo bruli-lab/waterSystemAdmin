@@ -1,6 +1,12 @@
 package web
 
-import "testing"
+import (
+	"errors"
+	"fmt"
+	"testing"
+
+	"github.com/bruli-lab/waterSystemAdmin/internal/api"
+)
 
 func TestParseSeconds(t *testing.T) {
 	tests := []struct {
@@ -26,5 +32,15 @@ func TestParseSeconds(t *testing.T) {
 				t.Errorf("parseSeconds(%q) = %d, want %d", tt.value, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestErrMessage(t *testing.T) {
+	down := fmt.Errorf("%w: request GET /zones: connection refused", api.ErrUnavailable)
+	if got := errMessage("Could not read the zones", down); got != "Could not read the zones: the irrigation API is not reachable." {
+		t.Errorf("unexpected message for unavailable API: %q", got)
+	}
+	if got := errMessage("Could not read the zones", errors.New("status code 500")); got != "Could not read the zones: status code 500" {
+		t.Errorf("unexpected message: %q", got)
 	}
 }

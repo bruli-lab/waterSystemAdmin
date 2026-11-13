@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 )
+
+var ErrUnavailable = errors.New("api unavailable")
 
 type Client struct {
 	cl     *http.Client
@@ -40,7 +43,7 @@ func (c *Client) do(ctx context.Context, method, path string, in, out any) error
 	}
 	resp, err := c.cl.Do(req)
 	if err != nil {
-		return fmt.Errorf("request %s %s: %w", method, path, err)
+		return fmt.Errorf("%w: request %s %s: %w", ErrUnavailable, method, path, err)
 	}
 	defer func() {
 		_ = resp.Body.Close()

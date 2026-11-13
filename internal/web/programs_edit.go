@@ -94,7 +94,7 @@ func (a *App) EditProgram(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error updating program", slog.String("error", err.Error()))
-		v.Error = "Could not update the program: " + err.Error()
+		v.fail("Could not update the program", err)
 		a.render(w, r, &v)
 		return
 	}
@@ -137,7 +137,7 @@ func (a *App) EditWeeklyProgram(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error updating weekly program", slog.String("error", err.Error()))
-		v.Error = "Could not update the program: " + err.Error()
+		v.fail("Could not update the program", err)
 		a.render(w, r, &v)
 		return
 	}
@@ -180,7 +180,7 @@ func (a *App) EditTemperatureProgram(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error updating temperature program", slog.String("error", err.Error()))
-		v.Error = "Could not update the program: " + err.Error()
+		v.fail("Could not update the program", err)
 		a.render(w, r, &v)
 		return
 	}

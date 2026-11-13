@@ -28,7 +28,7 @@ func (a *App) Programs(w http.ResponseWriter, r *http.Request) {
 	all, err := a.api.Programs.FindAll(r.Context())
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error finding programs", slog.String("error", err.Error()))
-		v.Error = "Could not read the programs: " + err.Error()
+		v.fail("Could not read the programs", err)
 		v.Data = programsPage{}
 		a.render(w, r, &v)
 		return
@@ -111,7 +111,7 @@ func (a *App) CreateProgram(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error creating program", slog.String("error", err.Error()))
-		v.Error = "Could not create the program: " + err.Error()
+		v.fail("Could not create the program", err)
 		a.render(w, r, &v)
 		return
 	}
@@ -137,7 +137,7 @@ func (a *App) CreateWeeklyProgram(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error creating weekly program", slog.String("error", err.Error()))
-		v.Error = "Could not create the program: " + err.Error()
+		v.fail("Could not create the program", err)
 		a.render(w, r, &v)
 		return
 	}
@@ -165,7 +165,7 @@ func (a *App) CreateTemperatureProgram(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error creating temperature program", slog.String("error", err.Error()))
-		v.Error = "Could not create the program: " + err.Error()
+		v.fail("Could not create the program", err)
 		a.render(w, r, &v)
 		return
 	}

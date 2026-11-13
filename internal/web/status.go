@@ -38,7 +38,7 @@ func (a *App) Logs(w http.ResponseWriter, r *http.Request) {
 	list, err := a.api.Logs.Find(r.Context())
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error finding logs", slog.String("error", err.Error()))
-		v.Error = "Could not read the logs: " + err.Error()
+		v.fail("Could not read the logs", err)
 	}
 	v.Data = list
 	a.render(w, r, &v)

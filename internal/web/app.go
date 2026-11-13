@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"embed"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -146,6 +147,19 @@ type view struct {
 	Data     any
 	Error    string
 	NoStatus bool
+	Offline  bool
+}
+
+func (v *view) fail(msg string, err error) {
+	v.Error = errMessage(msg, err)
+	v.Offline = errors.Is(err, api.ErrUnavailable)
+}
+
+func errMessage(msg string, err error) string {
+	if errors.Is(err, api.ErrUnavailable) {
+		return msg + ": the irrigation API is not reachable."
+	}
+	return msg + ": " + err.Error()
 }
 
 func (a *App) loadStatus(r *http.Request, pd *pageData) {
@@ -153,7 +167,7 @@ func (a *App) loadStatus(r *http.Request, pd *pageData) {
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error reading status", slog.String("error", err.Error()))
 		if pd.Error == "" {
-			pd.Error = "Could not read the system status."
+			pd.Error = errMessage("Could not read the system status", err)
 		}
 		return
 	}
@@ -164,14 +178,14 @@ func (a *App) render(w http.ResponseWriter, r *http.Request, v *view) {
 	ctx := r.Context()
 	pd := pageData{Page: v.Page, Title: v.Title, Back: v.Back, Data: v.Data, Error: v.Error}
 
-	if !v.NoStatus {
-		a.loadStatus(r, &pd)
-	}
-
 	success, flashErr := a.popFlashes(w, r)
 	pd.Success = success
 	if pd.Error == "" {
 		pd.Error = flashErr
+	}
+
+	if !v.NoStatus && !v.Offline {
+		a.loadStatus(r, &pd)
 	}
 
 	tpl, ok := a.pages[v.Template]
@@ -209,7 +223,7 @@ func (a *App) success(w http.ResponseWriter, r *http.Request, to, msg string) {
 
 func (a *App) failure(w http.ResponseWriter, r *http.Request, to, msg string, err error) {
 	a.log.ErrorContext(r.Context(), msg, slog.String("path", r.URL.Path), slog.String("error", err.Error()))
-	a.redirectWithFlash(w, r, to, flashError, msg+": "+err.Error())
+	a.redirectWithFlash(w, r, to, flashError, errMessage(msg, err))
 }
 
 func (a *App) popFlashes(w http.ResponseWriter, r *http.Request) (success, errMsg string) {
