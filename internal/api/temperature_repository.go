@@ -21,6 +21,11 @@ func (t TemperatureRepository) Save(ctx context.Context, p *programs.Temperature
 	return t.cl.do(ctx, http.MethodPost, "/programs/temperature", dto, nil)
 }
 
+func (t TemperatureRepository) Update(ctx context.Context, p *programs.TemperatureProgram) error {
+	dto := UpdatePrograms{Programs: toProgramDTOs(p.Programs)}
+	return t.cl.do(ctx, http.MethodPut, "/programs/temperature/"+strconv.Itoa(p.Temperature), dto, nil)
+}
+
 func NewTemperatureRepository(cl *Client) *TemperatureRepository {
 	return &TemperatureRepository{cl: cl}
 }

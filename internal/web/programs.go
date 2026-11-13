@@ -46,27 +46,43 @@ func (a *App) Programs(w http.ResponseWriter, r *http.Request) {
 	a.render(w, r, &v)
 }
 
+type execInput struct {
+	Seconds int      `json:"seconds"`
+	Zones   []string `json:"zones"`
+}
+
+type hourInput struct {
+	Hour       string      `json:"hour"`
+	Executions []execInput `json:"executions"`
+}
+
 type programForm struct {
-	Kind  string
-	Zones []zones.Zone
+	Kind       string
+	Zones      []zones.Zone
+	Action     string
+	Key        string
+	Fertilizer bool
+	Executions []execInput
+	Hours      []hourInput
 }
 
 func programsURL(section string) string {
 	return "/programs#" + section
 }
 
-func (a *App) formView(w http.ResponseWriter, r *http.Request, template, kind string) (view, bool) {
+func (a *App) formView(w http.ResponseWriter, r *http.Request, template string, form *programForm) (view, bool) {
 	list, err := a.api.Zones.FindAll(r.Context())
 	if err != nil {
-		a.failure(w, r, programsURL(kind), "Could not read the zones", err)
+		a.failure(w, r, programsURL(form.Kind), "Could not read the zones", err)
 		return view{}, false
 	}
+	form.Zones = list
 	v := view{
 		Template: template,
 		Page:     pagePrograms,
-		Title:    "New " + kind + " program",
-		Back:     &link{Href: programsURL(kind), Label: "Programs"},
-		Data:     programForm{Kind: kind, Zones: list},
+		Title:    "New " + form.Kind + " program",
+		Back:     &link{Href: programsURL(form.Kind), Label: "Programs"},
+		Data:     form,
 	}
 	if len(list) == 0 {
 		v.Error = "There are no zones configured."
@@ -80,7 +96,8 @@ func (a *App) CreateProgram(w http.ResponseWriter, r *http.Request) {
 		a.failure(w, r, "/programs", "Invalid program type", err)
 		return
 	}
-	v, ok := a.formView(w, r, "program_form.html", progType.String())
+	form := &programForm{Kind: progType.String(), Action: "/programs/new?type=" + progType.String()}
+	v, ok := a.formView(w, r, "program_form.html", form)
 	if !ok {
 		return
 	}
@@ -88,7 +105,7 @@ func (a *App) CreateProgram(w http.ResponseWriter, r *http.Request) {
 		a.render(w, r, &v)
 		return
 	}
-	p, err := parseFertilizerProgram(r)
+	p, err := parseFertilizerProgram(r, r.FormValue("hour"))
 	if err == nil {
 		err = a.api.Programs.Save(r.Context(), p, progType)
 	}
@@ -102,7 +119,7 @@ func (a *App) CreateProgram(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) CreateWeeklyProgram(w http.ResponseWriter, r *http.Request) {
-	v, ok := a.formView(w, r, "program_hours_form.html", "weekly")
+	v, ok := a.formView(w, r, "program_hours_form.html", &programForm{Kind: "weekly", Action: "/programs/weekly/new"})
 	if !ok {
 		return
 	}
@@ -128,7 +145,7 @@ func (a *App) CreateWeeklyProgram(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) CreateTemperatureProgram(w http.ResponseWriter, r *http.Request) {
-	v, ok := a.formView(w, r, "program_hours_form.html", "temperature")
+	v, ok := a.formView(w, r, "program_hours_form.html", &programForm{Kind: "temperature", Action: "/programs/temperature/new"})
 	if !ok {
 		return
 	}
@@ -199,11 +216,11 @@ func (a *App) RemoveTemperatureProgram(w http.ResponseWriter, r *http.Request) {
 	a.success(w, r, programsURL("temperature"), fmt.Sprintf("Program for %d °C deleted.", temp))
 }
 
-func parseFertilizerProgram(r *http.Request) (*programs.FertilizerProgram, error) {
+func parseFertilizerProgram(r *http.Request, hourValue string) (*programs.FertilizerProgram, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, errors.New("invalid form")
 	}
-	hour, err := programs.ParseHour(r.FormValue("hour"))
+	hour, err := programs.ParseHour(hourValue)
 	if err != nil {
 		return nil, errors.New("invalid hour")
 	}

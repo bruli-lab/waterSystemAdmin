@@ -120,6 +120,9 @@ func routes(app *web.App) http.Handler {
 	mux.HandleFunc("POST /programs/weekly/delete/{weekday}", auth(app.RemoveWeeklyProgram))
 	mux.HandleFunc("/programs/temperature/new", auth(app.CreateTemperatureProgram))
 	mux.HandleFunc("POST /programs/temperature/delete/{temperature}", auth(app.RemoveTemperatureProgram))
+	mux.HandleFunc("/programs/edit/{type}/{hour}", auth(app.EditProgram))
+	mux.HandleFunc("/programs/weekly/edit/{weekday}", auth(app.EditWeeklyProgram))
+	mux.HandleFunc("/programs/temperature/edit/{temperature}", auth(app.EditTemperatureProgram))
 	return http.NewCrossOriginProtection().Handler(mux)
 }
 

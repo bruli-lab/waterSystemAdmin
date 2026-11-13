@@ -50,6 +50,15 @@ type TemperatureProgram struct {
 	Temperature int       `json:"temperature"`
 }
 
+type UpdateFertilizerProgram struct {
+	Executions []Execution `json:"executions"`
+	Fertilizer bool        `json:"fertilizer"`
+}
+
+type UpdatePrograms struct {
+	Programs []Program `json:"programs"`
+}
+
 type ExecuteZone struct {
 	Seconds int `json:"seconds"`
 }

@@ -241,6 +241,42 @@ func TestRequests(t *testing.T) {
 			call: func(ctx context.Context, cl *Client) error { return NewTemperatureRepository(cl).Remove(ctx, 30) },
 			want: recorded{method: http.MethodDelete, path: "/programs/temperature/30"},
 		},
+		{
+			name: "update daily program",
+			call: func(ctx context.Context, cl *Client) error {
+				p := &programs.FertilizerProgram{
+					Hour:       mustHour(t, "08:00"),
+					Executions: []programs.Execution{{Seconds: 20, Zones: []string{"z1", "z2"}}},
+				}
+				return NewAllProgramsRepository(cl).Update(ctx, p, &daily)
+			},
+			want: recorded{
+				method: http.MethodPut,
+				path:   "/programs/daily/08:00",
+				body:   `{"executions":[{"seconds":20,"zones":["z1","z2"]}],"fertilizer":false}`,
+			},
+		},
+		{
+			name: "update weekly program",
+			call: func(ctx context.Context, cl *Client) error { return NewWeeklyRepository(cl).Update(ctx, weekly) },
+			want: recorded{
+				method: http.MethodPut,
+				path:   "/programs/weekly/monday",
+				body:   `{"programs":[{"executions":[{"seconds":7,"zones":["z2"]}],"hour":"09:00"}]}`,
+			},
+		},
+		{
+			name: "update temperature program",
+			call: func(ctx context.Context, cl *Client) error {
+				p := &programs.TemperatureProgram{Temperature: 30, Programs: weekly.Programs}
+				return NewTemperatureRepository(cl).Update(ctx, p)
+			},
+			want: recorded{
+				method: http.MethodPut,
+				path:   "/programs/temperature/30",
+				body:   `{"programs":[{"executions":[{"seconds":7,"zones":["z2"]}],"hour":"09:00"}]}`,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

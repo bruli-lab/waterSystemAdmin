@@ -1,13 +1,21 @@
 {{define "content"}}
 {{$weekly := eq .Data.Kind "weekly"}}
 <div class="container">
-    <h2 class="text-center my-4">Create New {{if $weekly}}Weekly{{else}}Temperature{{end}} program</h2>
+    <h2 class="text-center my-4">
+        {{if .Data.Key}}Edit {{if $weekly}}weekly program for {{.Data.Key}}{{else}}program for {{.Data.Key}} °C{{end}}
+        {{else}}Create New {{if $weekly}}Weekly{{else}}Temperature{{end}} program{{end}}
+    </h2>
     {{template "alerts" .}}
 
     <div class="d-flex justify-content-center">
-        <form id="programForm" action="/programs/{{.Data.Kind}}/new" method="POST"
+        <form id="programForm" action="{{.Data.Action}}" method="POST"
               class="p-4 border rounded shadow-sm w-100" style="max-width: 600px;">
-            {{if $weekly}}
+            {{if .Data.Key}}
+            <div class="mb-3">
+                <label for="key" class="form-label">{{if $weekly}}Day of the week{{else}}Temperature (°C){{end}}</label>
+                <input type="text" class="form-control" id="key" value="{{.Data.Key}}" disabled>
+            </div>
+            {{else if $weekly}}
             <div class="mb-3">
                 <label for="day" class="form-label">Day of the week</label>
                 <select class="form-select" name="day" id="day" required>
@@ -34,7 +42,9 @@
                 <button type="button" class="btn btn-outline-secondary" onclick="addHour()">➕ Add Hour</button>
             </div>
 
-            {{if $weekly}}
+            {{if .Data.Key}}
+            {{template "form_buttons" (buttons .Back "Save Program" (not .Data.Zones))}}
+            {{else if $weekly}}
             {{template "form_buttons" (buttons .Back "Create Weekly Program" (not .Data.Zones))}}
             {{else}}
             {{template "form_buttons" (buttons .Back "Create Temperature Program" (not .Data.Zones))}}
@@ -79,10 +89,17 @@
 
 <script>
     const hours = document.getElementById('hours');
+    const initial = {{.Data.Hours}};
 
-    function addHour() {
+    function addHour(data) {
         hours.appendChild(document.getElementById('hourTpl').content.cloneNode(true));
-        addExecution(hours.lastElementChild);
+        const hour = hours.lastElementChild;
+        if (data) {
+            hour.querySelector('[name="hours[]"]').value = data.hour;
+            data.executions.forEach(e => addExecution(hour, e));
+        } else {
+            addExecution(hour);
+        }
     }
 
     function removeHour(button) {
@@ -91,8 +108,13 @@
         }
     }
 
-    function addExecution(hour) {
-        hour.querySelector('.executions').appendChild(document.getElementById('executionTpl').content.cloneNode(true));
+    function addExecution(hour, data) {
+        const node = document.getElementById('executionTpl').content.cloneNode(true);
+        if (data) {
+            node.querySelector('[data-seconds]').value = data.seconds;
+            node.querySelectorAll('[data-zone]').forEach(cb => cb.checked = data.zones.includes(cb.value));
+        }
+        hour.querySelector('.executions').appendChild(node);
     }
 
     function removeExecution(button) {
@@ -111,6 +133,6 @@
         });
     });
 
-    addHour();
+    (initial && initial.length ? initial : [null]).forEach(h => addHour(h));
 </script>
 {{end}}

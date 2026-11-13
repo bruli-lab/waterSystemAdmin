@@ -36,7 +36,7 @@ spec:
 
       containers:
         - name: watersystem-admin
-          image: ghcr.io/bruli-lab/watersystemadmin:v1.0.0
+          image: ghcr.io/bruli-lab/watersystemadmin:v2.0.0
           imagePullPolicy: IfNotPresent
 
           securityContext:

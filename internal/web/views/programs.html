@@ -51,13 +51,18 @@
                                 </span>
                                 {{end}}
                             </td>
-                            <td class="text-end" style="min-width: 70px;">
+                            <td class="text-end" style="min-width: 110px;">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="/programs/edit/{{$s.Type}}/{{.Hour}}" class="btn btn-outline-secondary btn-sm" title="Edit">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </a>
                                 <form method="POST" action="/programs/delete/{{.Hour}}/{{$s.Type}}"
                                       onsubmit="return confirm('Are you sure you want to delete all executions for this hour?')">
                                     <button type="submit" class="btn btn-danger btn-sm" title="Delete all for this hour">
                                         <span class="material-symbols-outlined">delete</span>
                                     </button>
                                 </form>
+                                </div>
                             </td>
                         </tr>
                         {{end}}
@@ -99,13 +104,18 @@
                         <tr>
                             <td class="fw-bold text-center text-secondary">{{.WeekDay}}</td>
                             <td>{{template "hour_programs" .Programs}}</td>
-                            <td class="text-end" style="min-width: 70px;">
+                            <td class="text-end" style="min-width: 110px;">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="/programs/weekly/edit/{{.WeekDay}}" class="btn btn-outline-secondary btn-sm" title="Edit">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </a>
                                 <form method="POST" action="/programs/weekly/delete/{{.WeekDay}}"
                                       onsubmit="return confirm('Are you sure you want to delete all executions for this day?')">
                                     <button type="submit" class="btn btn-danger btn-sm" title="Delete all for this day">
                                         <span class="material-symbols-outlined">delete</span>
                                     </button>
                                 </form>
+                                </div>
                             </td>
                         </tr>
                         {{end}}
@@ -146,13 +156,18 @@
                         <tr>
                             <td class="fw-bold text-center text-secondary">{{.Temperature}} °C</td>
                             <td>{{template "hour_programs" .Programs}}</td>
-                            <td class="text-end" style="min-width: 70px;">
+                            <td class="text-end" style="min-width: 110px;">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="/programs/temperature/edit/{{.Temperature}}" class="btn btn-outline-secondary btn-sm" title="Edit">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </a>
                                 <form method="POST" action="/programs/temperature/delete/{{.Temperature}}"
                                       onsubmit="return confirm('Are you sure you want to delete all executions for this temperature?')">
                                     <button type="submit" class="btn btn-danger btn-sm" title="Delete all for this temperature">
                                         <span class="material-symbols-outlined">delete</span>
                                     </button>
                                 </form>
+                                </div>
                             </td>
                         </tr>
                         {{end}}

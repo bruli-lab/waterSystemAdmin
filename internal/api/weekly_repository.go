@@ -21,6 +21,11 @@ func (w WeeklyRepository) Save(ctx context.Context, p *programs.Weekly) error {
 	return w.cl.do(ctx, http.MethodPost, "/programs/weekly", dto, nil)
 }
 
+func (w WeeklyRepository) Update(ctx context.Context, p *programs.Weekly) error {
+	dto := UpdatePrograms{Programs: toProgramDTOs(p.Programs)}
+	return w.cl.do(ctx, http.MethodPut, "/programs/weekly/"+strings.ToLower(p.WeekDay.String()), dto, nil)
+}
+
 func NewWeeklyRepository(cl *Client) *WeeklyRepository {
 	return &WeeklyRepository{cl: cl}
 }

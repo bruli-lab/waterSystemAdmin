@@ -24,6 +24,11 @@ func (a ProgramsRepository) Save(ctx context.Context, p *programs.FertilizerProg
 	return a.cl.do(ctx, http.MethodPost, "/programs/"+t.String(), dto, nil)
 }
 
+func (a ProgramsRepository) Update(ctx context.Context, p *programs.FertilizerProgram, t *programs.TypeProgram) error {
+	dto := UpdateFertilizerProgram{Executions: toExecutionDTOs(p.Executions), Fertilizer: p.Fertilizer}
+	return a.cl.do(ctx, http.MethodPut, "/programs/"+t.String()+"/"+p.Hour.String(), dto, nil)
+}
+
 func (a ProgramsRepository) FindAll(ctx context.Context) (*programs.Programs, error) {
 	var prms Programs
 	if err := a.cl.do(ctx, http.MethodGet, "/programs", nil, &prms); err != nil {
