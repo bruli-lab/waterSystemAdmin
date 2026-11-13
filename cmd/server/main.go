@@ -2,30 +2,21 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
-	"io/fs"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
-	"github.com/bruli/waterSystemAdmin/internal/domain/password"
-	"github.com/bruli/waterSystemAdmin/internal/infra/disk"
-
+	"github.com/bruli-lab/waterSystemAdmin/internal/api"
+	"github.com/bruli-lab/waterSystemAdmin/internal/config"
+	"github.com/bruli-lab/waterSystemAdmin/internal/disk"
+	"github.com/bruli-lab/waterSystemAdmin/internal/web"
 	"github.com/gorilla/sessions"
-
-	"github.com/bruli/waterSystemAdmin/internal/domain/execution"
-	"github.com/bruli/waterSystemAdmin/internal/domain/logs"
-	"github.com/bruli/waterSystemAdmin/internal/domain/programs"
-	"github.com/bruli/waterSystemAdmin/internal/domain/zones"
-	"github.com/bruli/waterSystemAdmin/internal/infra/http/templates"
-
-	"github.com/bruli/waterSystemAdmin/internal/config"
-	"github.com/bruli/waterSystemAdmin/internal/domain/status"
-	"github.com/bruli/waterSystemAdmin/internal/infra/api"
-	"github.com/bruli/waterSystemAdmin/internal/infra/http/controller"
-	pongo2 "github.com/flosch/pongo2/v6"
 )
 
 const serviceName = "waterSystemAdmin"
@@ -37,65 +28,42 @@ func main() {
 }
 
 func run() error {
-	log := buildLog()
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	conf, err := config.New()
 	if err != nil {
-		log.ErrorContext(ctx, "failed to load config", slog.String("error", err.Error()))
+		fmt.Printf("failed to load config: %s\n", err.Error())
+		return err
+	}
+	log := buildLog(conf.LogLevel)
+
+	sessionStore, err := buildSessionStore(conf.SessionKey, log)
+	if err != nil {
+		log.Error("failed to build session store", slog.String("error", err.Error()))
 		return err
 	}
 
 	cl := api.NewClient(conf.ApiAuthKey, conf.ApiUrl, 5*time.Second)
-	statusRepo := api.NewStatusRepository(cl)
-	logsRepo := api.NewLogRepository(cl)
-	programsRepo := api.NewAllProgramsRepository(cl)
-	executionRepo := api.NewExecuteZoneRepository(cl)
-	activateRepo := api.NewActivateRepository(cl)
-	zoneRepo := api.NewZoneRepository(cl)
-	weeklyRepo := api.NewWeeklyRepository(cl)
-	tempRepo := api.NewTemperatureRepository(cl)
-	passwordRepo := disk.NewPasswordRepository(conf.PasswordFile)
-
-	findZones := zones.NewFindZones(zoneRepo)
-	passwordExists := password.NewExists(passwordRepo)
-
-	tplSet := pongo2.NewSet("embed", templates.NewEmbedLoader(templates.FS, "."))
-
-	sessionStore := sessions.NewCookieStore([]byte("clau-secreta-super-segura"))
-
-	authMdw := controller.AuthMiddleware(sessionStore, passwordExists, log)
-
-	staticFiles, _ := fs.Sub(templates.FS, "static")
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
-
-	findStatus := status.NewFindStatus(statusRepo)
-
-	http.HandleFunc("/", authMdw(controller.FindStatus(tplSet, findStatus, log)))
-	http.HandleFunc("/logs", authMdw(controller.FindLogs(tplSet, logs.NewFindLogs(logsRepo), findStatus, log)))
-	http.HandleFunc("/update-status", authMdw(controller.UpdateStatus(status.NewUpdateStatus(statusRepo), log)))
-	http.HandleFunc("/programs", authMdw(controller.Programs(tplSet, programs.NewFindAllPrograms(programsRepo), findStatus, log)))
-	http.HandleFunc("/programs/new", authMdw(controller.CreateProgram(tplSet, findZones, programs.NewCreate(programsRepo), findStatus, log)))
-	http.HandleFunc("/programs/delete/{hour}/{type}", authMdw(controller.RemoveProgram(tplSet, programs.NewRemove(programsRepo), log)))
-	http.HandleFunc("/programs/weekly/new", authMdw(controller.CreateWeeklyProgram(tplSet, findZones, programs.NewCreateWeekly(weeklyRepo), log)))
-	http.HandleFunc("/programs/weekly/delete/{weekday}", authMdw(controller.RemoveWeeklyProgram(tplSet, programs.NewRemoveWeekly(weeklyRepo), log)))
-	http.HandleFunc("/programs/temperature/new", authMdw(controller.CreateTemperatureProgram(tplSet, findZones, programs.NewCreateTemperature(tempRepo), log)))
-	http.HandleFunc("/programs/temperature/delete/{temperature}", authMdw(controller.RemoveTemperatureProgram(tplSet, programs.NewRemoveTemperature(tempRepo), log)))
-	http.HandleFunc("/zones", authMdw(controller.Zones(tplSet, findZones, findStatus, log)))
-	http.HandleFunc("/execution/{id}", authMdw(controller.Execution(tplSet, execution.NewExecuteZone(executionRepo), findStatus, log)))
-	http.HandleFunc("/deactivate", authMdw(controller.Deactivate(status.NewActivateDeactivate(activateRepo), log)))
-	http.HandleFunc("/activate", authMdw(controller.Activate(status.NewActivateDeactivate(activateRepo), log)))
-	http.HandleFunc("/zones/new", authMdw(controller.CreateZone(tplSet, zones.NewCreate(zoneRepo), findStatus, log)))
-	http.HandleFunc("/zones/{id}/delete", authMdw(controller.DeleteZone(zones.NewDelete(zoneRepo))))
-	http.HandleFunc("/zones/{id}/edit", authMdw(controller.UpdateZone(tplSet, findZones, zones.NewUpdate(zoneRepo), findStatus, log)))
-	http.HandleFunc("/login", controller.Login(tplSet, sessionStore, password.NewCheck(passwordRepo), findStatus, log))
-	http.HandleFunc("/logout", controller.Logout(sessionStore, log))
-	http.HandleFunc("/password", controller.Password(tplSet, password.NewCreate(passwordRepo), log))
+	app, err := web.NewApp(web.API{
+		Status:      api.NewStatusRepository(cl),
+		Activate:    api.NewActivateRepository(cl),
+		Zones:       api.NewZoneRepository(cl),
+		Execute:     api.NewExecuteZoneRepository(cl),
+		Logs:        api.NewLogRepository(cl),
+		Programs:    api.NewAllProgramsRepository(cl),
+		Weekly:      api.NewWeeklyRepository(cl),
+		Temperature: api.NewTemperatureRepository(cl),
+	}, disk.NewPasswordRepository(conf.PasswordFile), sessionStore, log)
+	if err != nil {
+		log.Error("failed to build web app", slog.String("error", err.Error()))
+		return err
+	}
 
 	srv := &http.Server{
-		Addr:    conf.ServerURL,
-		Handler: nil,
+		Addr:              conf.ServerURL,
+		Handler:           routes(app),
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	errCh := make(chan error)
@@ -121,6 +89,43 @@ func run() error {
 	return nil
 }
 
+func routes(app *web.App) http.Handler {
+	mux := http.NewServeMux()
+	auth := app.RequireAuth
+	mux.Handle("GET /static/", web.Static())
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
+
+	mux.HandleFunc("/login", app.Login)
+	mux.HandleFunc("GET /logout", app.Logout)
+	mux.HandleFunc("/password", app.Password)
+
+	mux.HandleFunc("GET /{$}", auth(app.Status))
+	mux.HandleFunc("POST /activate", auth(app.Activate))
+	mux.HandleFunc("POST /deactivate", auth(app.Deactivate))
+	mux.HandleFunc("POST /update-status", auth(app.UpdateStatus))
+	mux.HandleFunc("GET /logs", auth(app.Logs))
+
+	mux.HandleFunc("GET /zones", auth(app.Zones))
+	mux.HandleFunc("/zones/new", auth(app.CreateZone))
+	mux.HandleFunc("/zones/{id}/edit", auth(app.UpdateZone))
+	mux.HandleFunc("POST /zones/{id}/delete", auth(app.DeleteZone))
+	mux.HandleFunc("/execution/{id}", auth(app.Execute))
+	mux.HandleFunc("/fertilizer/{id}", auth(app.Fertilizer))
+	mux.HandleFunc("POST /clean/{id}", auth(app.Clean))
+
+	mux.HandleFunc("GET /programs", auth(app.Programs))
+	mux.HandleFunc("/programs/new", auth(app.CreateProgram))
+	mux.HandleFunc("POST /programs/delete/{hour}/{type}", auth(app.RemoveProgram))
+	mux.HandleFunc("/programs/weekly/new", auth(app.CreateWeeklyProgram))
+	mux.HandleFunc("POST /programs/weekly/delete/{weekday}", auth(app.RemoveWeeklyProgram))
+	mux.HandleFunc("/programs/temperature/new", auth(app.CreateTemperatureProgram))
+	mux.HandleFunc("POST /programs/temperature/delete/{temperature}", auth(app.RemoveTemperatureProgram))
+	mux.HandleFunc("/programs/edit/{type}/{hour}", auth(app.EditProgram))
+	mux.HandleFunc("/programs/weekly/edit/{weekday}", auth(app.EditWeeklyProgram))
+	mux.HandleFunc("/programs/temperature/edit/{temperature}", auth(app.EditTemperatureProgram))
+	return http.NewCrossOriginProtection().Handler(mux)
+}
+
 func runServer(ctx context.Context, log *slog.Logger, conf *config.Config, srv *http.Server) error {
 	log.InfoContext(ctx, "starting server", slog.String("url", conf.ServerURL))
 	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -130,12 +135,38 @@ func runServer(ctx context.Context, log *slog.Logger, conf *config.Config, srv *
 	return nil
 }
 
-func buildLog() *slog.Logger {
+func buildSessionStore(key string, log *slog.Logger) (*sessions.CookieStore, error) {
+	k := []byte(key)
+	if len(k) == 0 {
+		log.Warn("SESSION_KEY not set, using a random key: sessions will not survive restarts")
+		k = make([]byte, 32)
+		if _, err := rand.Read(k); err != nil {
+			return nil, err
+		}
+	}
+	store := sessions.NewCookieStore(k)
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 30,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	return store, nil
+}
+
+func buildLog(level string) *slog.Logger {
+	levels := map[string]slog.Level{
+		"info":  slog.LevelInfo,
+		"debug": slog.LevelDebug,
+		"error": slog.LevelError,
+		"warn":  slog.LevelWarn,
+	}
+	l := levels[level]
+
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+		Level: l,
 	})
 
-	logger := slog.New(handler)
-	logger.With("service", serviceName)
-	return logger
+	log := slog.New(handler)
+	return log.With("service", serviceName)
 }

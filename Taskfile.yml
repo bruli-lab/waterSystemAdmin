@@ -3,7 +3,7 @@ version: '3'
 vars:
   APP: 'admin'
   DOCKER_COMPOSE: 'COMPOSE_BAKE=true docker compose'
-  GOLANGCI_LINT_VERSION: 'v2.11.4'
+  GOLANGCI_LINT_VERSION: 'v2.15.0'
 
 tasks:
   default:
@@ -78,6 +78,14 @@ tasks:
         echo "🚀 Executing golangci-lint..."
         golangci-lint run ./...
 
+  unit-test:
+    desc: Run unit tests
+    cmds:
+      - |
+        set -euo pipefail
+        echo "🧪 Running unit tests..."
+        go test -race -count=1 ./...
+
   fumpt:
     desc: Format code with gofumpt
     cmds:
@@ -91,29 +99,3 @@ tasks:
     deps:
       - fumpt
       - lint
-
-  edit-vault:
-    desc: Edit Ansible vault file
-    cmds:
-      - |
-        set -euo pipefail
-        echo "🏗️  Editing vault file"
-        ansible-vault edit devops/ansible/inventories/production/group_vars/raspberry_water_system_admin/vault.yml
-
-  build:
-    desc: Build ARM64 binary for Raspberry Pi
-    cmds:
-      - |
-        set -euo pipefail
-        echo "🏗️ Building ARM64 binary for Raspberry Pi..."
-        GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -a -ldflags "-s -w" -buildvcs=false -o devops/ansible/assets/server ./cmd/server/
-
-  deploy:
-    desc: Build and deploy with Ansible
-    deps:
-      - build
-    cmds:
-      - |
-        set -euo pipefail
-        echo "🚚 Deploying with Ansible (production inventory)..."
-        ansible-playbook -i devops/ansible/inventories/production/hosts devops/ansible/deploy.yml --ask-vault-pass

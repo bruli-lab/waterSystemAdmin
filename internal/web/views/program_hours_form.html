@@ -1,0 +1,138 @@
+{{define "content"}}
+{{$weekly := eq .Data.Kind "weekly"}}
+<div class="container">
+    <h2 class="text-center my-4">
+        {{if .Data.Key}}Edit {{if $weekly}}weekly program for {{.Data.Key}}{{else}}program for {{.Data.Key}} °C{{end}}
+        {{else}}Create New {{if $weekly}}Weekly{{else}}Temperature{{end}} program{{end}}
+    </h2>
+    {{template "alerts" .}}
+
+    <div class="d-flex justify-content-center">
+        <form id="programForm" action="{{.Data.Action}}" method="POST"
+              class="p-4 border rounded shadow-sm w-100" style="max-width: 600px;">
+            {{if .Data.Key}}
+            <div class="mb-3">
+                <label for="key" class="form-label">{{if $weekly}}Day of the week{{else}}Temperature (°C){{end}}</label>
+                <input type="text" class="form-control" id="key" value="{{.Data.Key}}" disabled>
+            </div>
+            {{else if $weekly}}
+            <div class="mb-3">
+                <label for="day" class="form-label">Day of the week</label>
+                <select class="form-select" name="day" id="day" required>
+                    <option value="">Select...</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
+                </select>
+            </div>
+            {{else}}
+            <div class="mb-3">
+                <label for="temperature" class="form-label">Temperature (°C)</label>
+                <input type="number" class="form-control" id="temperature" name="temperature" required>
+            </div>
+            {{end}}
+
+            <div id="hours" class="mb-3"></div>
+
+            <div class="mb-3 text-end">
+                <button type="button" class="btn btn-outline-secondary" onclick="addHour()">➕ Add Hour</button>
+            </div>
+
+            {{if .Data.Key}}
+            {{template "form_buttons" (buttons .Back "Save Program" (not .Data.Zones))}}
+            {{else if $weekly}}
+            {{template "form_buttons" (buttons .Back "Create Weekly Program" (not .Data.Zones))}}
+            {{else}}
+            {{template "form_buttons" (buttons .Back "Create Temperature Program" (not .Data.Zones))}}
+            {{end}}
+        </form>
+    </div>
+</div>
+
+<template id="hourTpl">
+    <div class="hour card mb-3 p-3 shadow-sm">
+        <div class="mb-2 d-flex justify-content-between align-items-center">
+            <label class="form-label me-2">Hour</label>
+            <input type="time" name="hours[]" class="form-control w-50" required>
+            <button type="button" class="btn btn-danger btn-sm ms-3" onclick="removeHour(this)">🗑️</button>
+        </div>
+        <div class="executions mb-2"></div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addExecution(this.closest('.hour'))">➕ Add Execution</button>
+    </div>
+</template>
+
+<template id="executionTpl">
+    <div class="execution border rounded p-2 mb-2 position-relative">
+        <button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2"
+                onclick="removeExecution(this)">🗑️</button>
+        <div class="mb-2">
+            <label>Seconds</label>
+            <input type="number" min="1" max="{{maxSeconds}}" data-seconds class="form-control" required>
+        </div>
+        <label>Zones</label>
+        <div class="row">
+            {{range .Data.Zones}}
+            <div class="col-6 col-md-3">
+                <label class="form-check">
+                    <input class="form-check-input" type="checkbox" data-zone value="{{.ID}}">
+                    <span class="form-check-label">{{.Name}}</span>
+                </label>
+            </div>
+            {{end}}
+        </div>
+    </div>
+</template>
+
+<script>
+    const hours = document.getElementById('hours');
+    const initial = {{.Data.Hours}};
+
+    function addHour(data) {
+        hours.appendChild(document.getElementById('hourTpl').content.cloneNode(true));
+        const hour = hours.lastElementChild;
+        if (data) {
+            hour.querySelector('[name="hours[]"]').value = data.hour;
+            data.executions.forEach(e => addExecution(hour, e));
+        } else {
+            addExecution(hour);
+        }
+    }
+
+    function removeHour(button) {
+        if (hours.children.length > 1) {
+            button.closest('.hour').remove();
+        }
+    }
+
+    function addExecution(hour, data) {
+        const node = document.getElementById('executionTpl').content.cloneNode(true);
+        if (data) {
+            node.querySelector('[data-seconds]').value = data.seconds;
+            node.querySelectorAll('[data-zone]').forEach(cb => cb.checked = data.zones.includes(cb.value));
+        }
+        hour.querySelector('.executions').appendChild(node);
+    }
+
+    function removeExecution(button) {
+        const list = button.closest('.executions');
+        if (list.children.length > 1) {
+            button.closest('.execution').remove();
+        }
+    }
+
+    document.getElementById('programForm').addEventListener('submit', () => {
+        hours.querySelectorAll('.hour').forEach((hour, h) => {
+            hour.querySelectorAll('.execution').forEach((exec, n) => {
+                exec.querySelector('[data-seconds]').name = `executions_${h}_seconds[]`;
+                exec.querySelectorAll('[data-zone]').forEach(cb => cb.name = `executions_${h}_zones_${n}[]`);
+            });
+        });
+    });
+
+    (initial && initial.length ? initial : [null]).forEach(h => addHour(h));
+</script>
+{{end}}

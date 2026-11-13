@@ -2,6 +2,7 @@ services:
   admin:
     build:
       context: .
+      dockerfile: Dockerfile.dev
     container_name: admin
     volumes:
       - .:/app
@@ -12,6 +13,8 @@ services:
         - WS_AUTH_TOKEN=${WS_AUTH_TOKEN:-token}
         - API_URL=${API_URL:-water_system:8080}
         - PASSWORD_FILE=${PASSWORD_FILE:-/tmp/password}
+        - LOG_LEVEL=debug
+        - SESSION_KEY=${SESSION_KEY:-local-dev-session-key}
     networks:
         - water_system
     command: ["air", "-c", ".air.toml"]

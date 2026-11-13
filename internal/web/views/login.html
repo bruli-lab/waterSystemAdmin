@@ -1,0 +1,14 @@
+{{define "title"}}Init session{{end}}
+{{define "content"}}
+<h4 class="mb-3">Init session</h4>
+{{template "alerts" .}}
+<form method="POST" action="/login">
+    <div class="mb-3 text-start">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" name="password" required autofocus>
+    </div>
+    <div class="d-grid">
+        <button type="submit" class="btn btn-primary">Access</button>
+    </div>
+</form>
+{{end}}

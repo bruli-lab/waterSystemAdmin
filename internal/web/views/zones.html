@@ -1,0 +1,72 @@
+{{define "content"}}
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 my-4">
+    <h2 class="mb-0">Configured Zones</h2>
+    {{if .Data.Loaded}}
+    <a href="/zones/new" class="btn btn-primary d-flex align-items-center gap-1">
+        <span class="material-symbols-outlined align-middle">add</span>
+        <span>New Zone</span>
+    </a>
+    {{end}}
+</div>
+
+{{template "alerts" .}}
+
+{{$cleaning := .Cleaning}}
+{{with .Data.Zones}}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {{range .}}
+    <div class="col">
+        <div class="card h-100 border border-primary shadow-sm">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="card-title">{{.Name}}</h5>
+                    <div class="mb-2">
+                        {{range .Relays}}
+                        <span class="badge bg-secondary me-1 mb-1">Relay {{.}}</span>
+                        {{end}}
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a href="/execution/{{.ID}}"
+                       class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1{{if $cleaning}} disabled{{end}}"
+                       {{if $cleaning}}aria-disabled="true" tabindex="-1"{{end}}>
+                        <span class="material-symbols-outlined">sprinkler</span>Water
+                    </a>
+                    <a href="/fertilizer/{{.ID}}"
+                       class="btn btn-success btn-sm d-inline-flex align-items-center gap-1{{if $cleaning}} disabled{{end}}"
+                       {{if $cleaning}}aria-disabled="true" tabindex="-1"{{end}}>
+                        <span class="material-symbols-outlined">yard</span>Fertilizer
+                    </a>
+                    <form method="POST" action="/clean/{{.ID}}"
+                          onsubmit="return confirm('Start the clean process for {{.Name}}?')">
+                        <button type="submit" class="btn btn-info btn-sm d-inline-flex align-items-center gap-1"{{if $cleaning}} disabled{{end}}>
+                            <span class="material-symbols-outlined">cleaning_services</span>Clean
+                        </button>
+                    </form>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mt-2 pt-2 border-top">
+                    <a href="/zones/{{.ID}}/edit" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
+                        <span class="material-symbols-outlined">edit</span>Edit
+                    </a>
+                    <form method="POST" action="/zones/{{.ID}}/delete"
+                          onsubmit="return confirm('Delete the zone {{.Name}}?')">
+                        <button type="submit" class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1">
+                            <span class="material-symbols-outlined">delete</span>Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{else}}
+{{if .Data.Loaded}}
+<div class="alert alert-secondary text-center w-100" role="alert">
+    No zones configured
+</div>
+{{end}}
+{{end}}
+{{end}}

@@ -1,15 +1,35 @@
-FROM golang:1.26.2
+# syntax=docker/dockerfile:1.28
 
-RUN mkdir /app
-WORKDIR /app
-RUN apt-get update && apt-get upgrade -y && apt-get install -y make git
+FROM --platform=$BUILDPLATFORM golang:1.27.4 AS builder
+WORKDIR /src
 
-# Cache de deps Go
+ENV GOPROXY=https://proxy.golang.org,direct
+
 COPY go.mod go.sum ./
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 
-# Instal·lar air
-RUN go install github.com/air-verse/air@latest
+COPY . .
 
-EXPOSE 3000
-CMD ["air", "-c", ".air.toml"]
+ARG TARGETOS
+ARG TARGETARCH
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -trimpath -ldflags "-s -w" -o /out/server ./cmd/server
+
+FROM alpine:3.24
+
+ARG APP_UID=10001
+ARG APP_GID=10001
+
+RUN addgroup -S -g "${APP_GID}" app \
+    && adduser -S -D -H -u "${APP_UID}" -G app app
+
+COPY --from=builder --chown=${APP_UID}:${APP_GID} --chmod=0555 /out/server /usr/local/bin/server
+
+USER ${APP_UID}:${APP_GID}
+
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/local/bin/server"]

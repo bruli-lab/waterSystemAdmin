@@ -1,0 +1,31 @@
+{{define "content"}}
+{{$action := printf "/execution/%s" .Data.Zone.ID}}
+{{if .Data.Fertilizer}}{{$action = printf "/fertilizer/%s" .Data.Zone.ID}}{{end}}
+{{$cleaning := .Cleaning}}
+<div class="container">
+    <h2 class="text-center my-4">
+        {{if .Data.Fertilizer}}Water and fertilize{{else}}Water{{end}} <span class="text-primary">{{.Data.Zone.Name}}</span>
+    </h2>
+    {{template "alerts" .}}
+
+    <div class="p-4 border rounded shadow-sm mx-auto" style="max-width: 400px;">
+        <p class="form-label mb-2">Quick start</p>
+        <div class="d-flex gap-2 mb-4">
+            {{range .Data.Quick}}
+            <form method="POST" action="{{$action}}" class="flex-fill">
+                <input type="hidden" name="seconds" value="{{.}}">
+                <button type="submit" class="btn btn-outline-primary w-100"{{if $cleaning}} disabled{{end}}>{{.}} s</button>
+            </form>
+            {{end}}
+        </div>
+
+        <form method="POST" action="{{$action}}">
+            <div class="mb-3">
+                <label for="seconds" class="form-label">Custom seconds</label>
+                <input type="number" min="1" max="{{maxSeconds}}" class="form-control text-center" id="seconds" name="seconds" required>
+            </div>
+            {{template "form_buttons" (buttons .Back "Start" .Cleaning)}}
+        </form>
+    </div>
+</div>
+{{end}}

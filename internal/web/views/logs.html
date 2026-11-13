@@ -1,0 +1,24 @@
+{{define "content"}}
+<div class="container">
+    <h2 class="text-center my-4">Execution Logs</h2>
+    {{template "alerts" .}}
+    <ul class="list-group">
+        {{range .Data}}
+        <li class="list-group-item mb-2">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-1">
+                <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
+                    <span class="badge bg-primary rounded-pill">{{.ExecutedAt.Format "15:04"}}</span>
+                    <strong>{{.Zone}}</strong>
+                </div>
+                <span class="text-end">{{.Seconds}}s</span>
+            </div>
+            <div class="text-end">
+                <small class="text-muted">{{.ExecutedAt.Format "02 Jan 2006"}}</small>
+            </div>
+        </li>
+        {{else}}
+        <li class="list-group-item text-center text-muted">No logs</li>
+        {{end}}
+    </ul>
+</div>
+{{end}}
