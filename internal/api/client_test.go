@@ -106,6 +106,15 @@ func TestClientDo(t *testing.T) {
 	}
 }
 
+func TestClientDoStatusError(t *testing.T) {
+	_, cl := newFakeAPI(t, http.StatusConflict, "cleaning")
+	err := cl.do(t.Context(), http.MethodPost, "/relays/1/test", nil, nil)
+	se, ok := errors.AsType[*StatusError](err)
+	if !ok || se.Code != http.StatusConflict {
+		t.Fatalf("expected status error 409, got %v", err)
+	}
+}
+
 func TestClientDoDecodeError(t *testing.T) {
 	_, cl := newFakeAPI(t, http.StatusOK, "not json")
 	var out Status
@@ -144,6 +153,11 @@ func TestRequests(t *testing.T) {
 			name: "deactivate",
 			call: func(ctx context.Context, cl *Client) error { return NewActivateRepository(cl).Activate(ctx, false) },
 			want: recorded{method: http.MethodPatch, path: "/status/deactivate"},
+		},
+		{
+			name: "test relay",
+			call: func(ctx context.Context, cl *Client) error { return NewRelayRepository(cl).Test(ctx, 6) },
+			want: recorded{method: http.MethodPost, path: "/relays/6/test"},
 		},
 		{
 			name: "update status",

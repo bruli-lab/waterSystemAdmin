@@ -54,6 +54,7 @@ func run() error {
 		Programs:    api.NewAllProgramsRepository(cl),
 		Weekly:      api.NewWeeklyRepository(cl),
 		Temperature: api.NewTemperatureRepository(cl),
+		Relays:      api.NewRelayRepository(cl),
 	}, disk.NewPasswordRepository(conf.PasswordFile), sessionStore, log)
 	if err != nil {
 		log.Error("failed to build web app", slog.String("error", err.Error()))
@@ -112,6 +113,9 @@ func routes(app *web.App) http.Handler {
 	mux.HandleFunc("/execution/{id}", auth(app.Execute))
 	mux.HandleFunc("/fertilizer/{id}", auth(app.Fertilizer))
 	mux.HandleFunc("POST /clean/{id}", auth(app.Clean))
+
+	mux.HandleFunc("GET /relays", auth(app.Relays))
+	mux.HandleFunc("POST /relays/{id}/test", auth(app.TestRelay))
 
 	mux.HandleFunc("GET /programs", auth(app.Programs))
 	mux.HandleFunc("/programs/new", auth(app.CreateProgram))
