@@ -29,6 +29,7 @@ const (
 	pageLogs     = "logs"
 	pageZones    = "zones"
 	pagePrograms = "programs"
+	pageRelays   = "relays"
 	sessionName  = "session"
 	flashSuccess = "flash_success"
 	flashError   = "flash_error"
@@ -44,6 +45,7 @@ type API struct {
 	Programs    *api.ProgramsRepository
 	Weekly      *api.WeeklyRepository
 	Temperature *api.TemperatureRepository
+	Relays      *api.RelayRepository
 }
 
 type App struct {

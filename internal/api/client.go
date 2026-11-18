@@ -14,6 +14,18 @@ import (
 
 var ErrUnavailable = errors.New("api unavailable")
 
+type StatusError struct {
+	Method, Path, Message string
+	Code                  int
+}
+
+func (e *StatusError) Error() string {
+	if e.Message != "" {
+		return fmt.Sprintf("request %s %s: status code %d: %s", e.Method, e.Path, e.Code, e.Message)
+	}
+	return fmt.Sprintf("request %s %s: status code %d", e.Method, e.Path, e.Code)
+}
+
 type Client struct {
 	cl     *http.Client
 	token  string
@@ -50,10 +62,7 @@ func (c *Client) do(ctx context.Context, method, path string, in, out any) error
 	}()
 	if resp.StatusCode != http.StatusOK {
 		data, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
-		if msg := strings.TrimSpace(string(data)); msg != "" {
-			return fmt.Errorf("request %s %s: status code %d: %s", method, path, resp.StatusCode, msg)
-		}
-		return fmt.Errorf("request %s %s: status code %d", method, path, resp.StatusCode)
+		return &StatusError{Method: method, Path: path, Code: resp.StatusCode, Message: strings.TrimSpace(string(data))}
 	}
 	if out == nil {
 		return nil

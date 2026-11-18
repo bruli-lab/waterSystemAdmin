@@ -1,0 +1,23 @@
+{{define "content"}}
+<div class="container">
+    <h2 class="text-center my-4">Relays</h2>
+    {{template "alerts" .}}
+    {{$cleaning := .Cleaning}}
+    <ul class="list-group">
+        {{range .Data}}
+        <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-secondary rounded-pill">{{.ID}}</span>
+                <strong>{{.Name}}</strong>
+            </div>
+            <form method="POST" action="/relays/{{.ID}}/test"
+                  onsubmit="return confirm('Switch {{.Name}} on and off to test it?')">
+                <button type="submit" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1"{{if $cleaning}} disabled{{end}}>
+                    <span class="material-symbols-outlined">power_settings_new</span>Test
+                </button>
+            </form>
+        </li>
+        {{end}}
+    </ul>
+</div>
+{{end}}
