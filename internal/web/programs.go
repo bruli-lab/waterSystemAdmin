@@ -24,7 +24,7 @@ type programsPage struct {
 }
 
 func (a *App) Programs(w http.ResponseWriter, r *http.Request) {
-	v := view{Template: "programs.html", Page: pagePrograms, Title: "Programs"}
+	v := view{Template: "programs.html", Page: pagePrograms, Title: "Programs", Refresh: true}
 	all, err := a.api.Programs.FindAll(r.Context())
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error finding programs", slog.String("error", err.Error()))

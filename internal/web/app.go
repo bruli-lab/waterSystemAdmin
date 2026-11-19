@@ -133,6 +133,7 @@ type pageData struct {
 	Status  *status.Status
 	Error   string
 	Success string
+	Refresh bool
 	Data    any
 }
 
@@ -150,6 +151,7 @@ type view struct {
 	Error    string
 	NoStatus bool
 	Offline  bool
+	Refresh  bool
 }
 
 func (v *view) fail(msg string, err error) {
@@ -178,7 +180,7 @@ func (a *App) loadStatus(r *http.Request, pd *pageData) {
 
 func (a *App) render(w http.ResponseWriter, r *http.Request, v *view) {
 	ctx := r.Context()
-	pd := pageData{Page: v.Page, Title: v.Title, Back: v.Back, Data: v.Data, Error: v.Error}
+	pd := pageData{Page: v.Page, Title: v.Title, Back: v.Back, Data: v.Data, Error: v.Error, Refresh: v.Refresh}
 
 	success, flashErr := a.popFlashes(w, r)
 	pd.Success = success

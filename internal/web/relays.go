@@ -34,7 +34,7 @@ var relayTestErrors = map[int]string{
 }
 
 func (a *App) Relays(w http.ResponseWriter, r *http.Request) {
-	a.render(w, r, &view{Template: "relays.html", Page: pageRelays, Title: "Relays", Data: relays})
+	a.render(w, r, &view{Template: "relays.html", Page: pageRelays, Title: "Relays", Data: relays, Refresh: true})
 }
 
 func (a *App) TestRelay(w http.ResponseWriter, r *http.Request) {

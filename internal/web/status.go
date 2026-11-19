@@ -6,7 +6,7 @@ import (
 )
 
 func (a *App) Status(w http.ResponseWriter, r *http.Request) {
-	a.render(w, r, &view{Template: "status.html", Page: pageStatus, Title: "Status"})
+	a.render(w, r, &view{Template: "status.html", Page: pageStatus, Title: "Status", Refresh: true})
 }
 
 func (a *App) Activate(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +34,7 @@ func (a *App) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) Logs(w http.ResponseWriter, r *http.Request) {
-	v := view{Template: "logs.html", Page: pageLogs, Title: "Logs"}
+	v := view{Template: "logs.html", Page: pageLogs, Title: "Logs", Refresh: true}
 	list, err := a.api.Logs.Find(r.Context())
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error finding logs", slog.String("error", err.Error()))

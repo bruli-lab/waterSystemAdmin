@@ -22,6 +22,17 @@
 </main>
 {{template "footer" .}}
 {{template "bottomnav" .}}
+{{if .Refresh}}
+<script>
+    (() => {
+        let submitting = false;
+        document.addEventListener("submit", () => { submitting = true; });
+        setInterval(() => {
+            if (!submitting && !document.hidden) location.reload();
+        }, 10000);
+    })();
+</script>
+{{end}}
 </body>
 </html>
 {{end}}

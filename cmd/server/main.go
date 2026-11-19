@@ -45,6 +45,7 @@ func run() error {
 	}
 
 	cl := api.NewClient(conf.ApiAuthKey, conf.ApiUrl, 5*time.Second)
+	relaysCl := api.NewClient(conf.ApiAuthKey, conf.ApiUrl, 15*time.Second)
 	app, err := web.NewApp(web.API{
 		Status:      api.NewStatusRepository(cl),
 		Activate:    api.NewActivateRepository(cl),
@@ -54,7 +55,7 @@ func run() error {
 		Programs:    api.NewAllProgramsRepository(cl),
 		Weekly:      api.NewWeeklyRepository(cl),
 		Temperature: api.NewTemperatureRepository(cl),
-		Relays:      api.NewRelayRepository(cl),
+		Relays:      api.NewRelayRepository(relaysCl),
 	}, disk.NewPasswordRepository(conf.PasswordFile), sessionStore, log)
 	if err != nil {
 		log.Error("failed to build web app", slog.String("error", err.Error()))

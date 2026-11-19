@@ -23,7 +23,7 @@ type zonesPage struct {
 }
 
 func (a *App) Zones(w http.ResponseWriter, r *http.Request) {
-	v := view{Template: "zones.html", Page: pageZones, Title: "Zones"}
+	v := view{Template: "zones.html", Page: pageZones, Title: "Zones", Refresh: true}
 	list, err := a.api.Zones.FindAll(r.Context())
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error finding zones", slog.String("error", err.Error()))
