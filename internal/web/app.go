@@ -2,7 +2,9 @@ package web
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"embed"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"html/template"
@@ -91,7 +93,32 @@ type navLink struct {
 	Href, Icon, Label string
 }
 
+var assetVersions = func() map[string]string {
+	versions := map[string]string{}
+	err := fs.WalkDir(staticFS, "static", func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		data, err := staticFS.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		sum := sha256.Sum256(data)
+		versions[strings.TrimPrefix(path, "static/")] = hex.EncodeToString(sum[:4])
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	return versions
+}()
+
+func asset(path string) string {
+	return "/static/" + path + "?v=" + assetVersions[path]
+}
+
 var templateFuncs = template.FuncMap{
+	"asset": asset,
 	"navItem": func(current, page, href, icon, label string) navLink {
 		return navLink{Active: current == page, Href: href, Icon: icon, Label: label}
 	},
