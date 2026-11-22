@@ -19,6 +19,7 @@ var (
 
 type zonesPage struct {
 	Zones  []zones.Zone
+	Relays []int
 	Loaded bool
 }
 
@@ -30,7 +31,7 @@ func (a *App) Zones(w http.ResponseWriter, r *http.Request) {
 		v.fail("Could not read the zones", err)
 		v.Data = zonesPage{}
 	} else {
-		v.Data = zonesPage{Zones: list, Loaded: true}
+		v.Data = zonesPage{Zones: list, Relays: availableRelays, Loaded: true}
 	}
 	a.render(w, r, &v)
 }

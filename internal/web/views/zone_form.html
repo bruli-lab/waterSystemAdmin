@@ -1,55 +1,59 @@
 {{define "content"}}
 {{$zone := .Data.Zone}}
-<div class="container">
-    <h2 class="text-center my-4">{{if .Data.Edit}}Update Zone{{else}}Create New Zone{{end}}</h2>
-    {{template "alerts" .}}
-
-    <div class="d-flex justify-content-center">
-        <form id="zoneForm" method="POST"
-              action="{{if .Data.Edit}}/zones/{{$zone.ID}}/edit{{else}}/zones/new{{end}}"
-              class="p-4 border rounded shadow-sm w-100" style="max-width: 600px;">
-            {{if not .Data.Edit}}
-            <div class="mb-3">
-                <label for="id" class="form-label">Id</label>
-                <input type="text" class="form-control" id="id" name="id" value="{{$zone.ID}}" required>
-            </div>
-            {{end}}
-            <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <input type="text" class="form-control" id="name" name="name" value="{{$zone.Name}}" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Relays</label>
-                <div class="row">
-                    {{range .Data.Relays}}
-                    <div class="col-6 col-sm-4 col-md-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="relays" id="relay{{.}}" value="{{.}}"
-                                   {{if contains $zone.Relays .}}checked{{end}}>
-                            <label class="form-check-label" for="relay{{.}}">Relay {{.}}</label>
-                        </div>
-                    </div>
-                    {{end}}
-                </div>
-            </div>
-
-            {{if .Data.Edit}}
-            {{template "form_buttons" (buttons .Back "Update Zone" false)}}
-            {{else}}
-            {{template "form_buttons" (buttons .Back "Create Zone" false)}}
-            {{end}}
-        </form>
-    </div>
+<div class="ws-page-head">
+    <h1>{{if .Data.Edit}}Edit {{$zone.Name}}{{else}}New zone{{end}}</h1>
 </div>
+{{template "alerts" .}}
+
+<form id="zoneForm" method="POST" action="{{if .Data.Edit}}/zones/{{$zone.ID}}/edit{{else}}/zones/new{{end}}" class="ws-card ws-form">
+    <div>
+        <label for="id" class="form-label">Id</label>
+        {{if .Data.Edit}}
+        <input type="text" class="form-control ws-mono" id="id" value="{{$zone.ID}}" disabled>
+        <div class="form-text">The id cannot be changed.</div>
+        {{else}}
+        <input type="text" class="form-control ws-mono" id="id" name="id" value="{{$zone.ID}}" required autocomplete="off">
+        <div class="form-text">Short identifier used by the API, for example <code>pines</code>.</div>
+        {{end}}
+    </div>
+    <div>
+        <label for="name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="name" name="name" value="{{$zone.Name}}" required>
+    </div>
+    <fieldset>
+        <legend class="ws-field-label">Relays</legend>
+        <div class="ws-picks">
+            {{range .Data.Relays}}
+            <label>
+                <input class="btn-check" type="checkbox" name="relays" value="{{.}}"{{if contains $zone.Relays .}} checked{{end}}>
+                <span class="ws-pick"><b>{{.}}</b><span class="ws-on-text">On</span><span class="ws-off-text">Off</span></span>
+            </label>
+            {{end}}
+        </div>
+        <div class="form-text" id="relaysHelp">Up to {{len .Data.Relays}} relays per zone.</div>
+        <div class="invalid-feedback" id="relaysError">Select at least one relay.</div>
+    </fieldset>
+    {{if .Data.Edit}}
+    {{template "form_buttons" (buttons .Back "Save zone" false)}}
+    {{else}}
+    {{template "form_buttons" (buttons .Back "Create zone" false)}}
+    {{end}}
+</form>
 
 <script>
-    document.getElementById("zoneForm").addEventListener("submit", function (e) {
-        const anyChecked = Array.from(this.querySelectorAll('input[name="relays"]')).some(cb => cb.checked);
-        if (!anyChecked) {
-            e.preventDefault();
-            alert("Select at least one relay.");
-        }
-    });
+    (() => {
+        const form = document.getElementById("zoneForm");
+        const boxes = form.querySelectorAll('input[name="relays"]');
+        const error = document.getElementById("relaysError");
+        const show = on => error.style.display = on ? "block" : "";
+        boxes.forEach(cb => cb.addEventListener("change", () => show(false)));
+        form.addEventListener("submit", e => {
+            if (![...boxes].some(cb => cb.checked)) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                show(true);
+            }
+        });
+    })();
 </script>
 {{end}}

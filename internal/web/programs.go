@@ -20,6 +20,7 @@ type programsPage struct {
 	Sections    []programSection
 	Weekly      []programs.Weekly
 	Temperature programs.Temperature
+	ZoneNames   map[string]string
 	Loaded      bool
 }
 
@@ -41,9 +42,23 @@ func (a *App) Programs(w http.ResponseWriter, r *http.Request) {
 		},
 		Weekly:      all.Weekly,
 		Temperature: all.Temperature,
+		ZoneNames:   a.zoneNames(r),
 		Loaded:      true,
 	}
 	a.render(w, r, &v)
+}
+
+func (a *App) zoneNames(r *http.Request) map[string]string {
+	list, err := a.api.Zones.FindAll(r.Context())
+	if err != nil {
+		a.log.ErrorContext(r.Context(), "error finding zones", slog.String("error", err.Error()))
+		return nil
+	}
+	names := make(map[string]string, len(list))
+	for _, z := range list {
+		names[z.ID] = z.Name
+	}
+	return names
 }
 
 type execInput struct {

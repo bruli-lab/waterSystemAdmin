@@ -1,38 +1,110 @@
+{{define "head"}}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="apple-touch-icon" href="/static/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/custom.css">
+{{end}}
+
+{{define "logo"}}<svg class="ws-logo" viewBox="0 0 84 80" height="{{.}}" aria-hidden="true">
+    <path d="M42 1C42 1 8 27 8 46a34 34 0 0 0 68 0C76 27 42 1 42 1Z" fill="currentColor"/>
+    <g style="fill: var(--ws-surface)">
+        <path d="M34.5 66.4Q30.3 63.2 30.5 63Q30.7 62.8 31 62.5Q31.3 62.2 31.6 61.7Q32 61.3 32.4 60.8Q32.8 60.3 33.2 59.8Q33.7 59.3 34.1 58.8Q34.6 58.2 35.2 57.7Q35.7 57.1 36.2 56.6Q36.8 56.1 37.4 55.6Q38.1 55.1 38.7 54.7Q39.4 54.2 40 53.9Q40.6 53.5 41.2 53.2Q41.8 52.8 42.4 52.5Q42.9 52.2 43.4 51.9Q43.8 51.7 44.2 51.4Q44.5 51.2 44.7 51Q45 50.9 45.2 50.7Q45.4 50.4 45.6 50.2Q45.8 50 45.9 49.8Q46.1 49.5 46.2 49.3Q46.4 49.1 46.5 48.9Q46.6 48.7 46.7 48.6Q46.7 48.4 46.8 48.2Q46.8 48.1 46.9 48Q46.9 47.9 47 47.9Q47 48 47 47.9Q47 47.7 46.8 47.5Q46.6 47.2 46.4 46.9Q46.1 46.5 45.8 46.1Q45.5 45.6 45.2 45.1Q44.8 44.6 44.5 43.9Q44.2 43.3 44 42.5Q43.9 41.6 44 40.8Q44.1 40 44.3 39.4Q44.6 38.7 44.9 38.2Q45.2 37.7 45.5 37.3Q45.8 36.9 46 36.5Q46.3 36.1 46.5 35.8Q46.7 35.6 46.8 35.4Q46.9 35.2 47 35Q47 34.9 47.1 34.8Q47.1 34.6 47 34.3Q47 34 46.9 33.7Q46.8 33.4 46.7 33Q46.5 32.6 46.4 32.2Q46.2 31.8 46 31.3Q45.8 30.9 45.7 30.4Q45.5 29.9 45.4 29.4Q45.3 29 45.2 28.5Q45.2 28 45.1 27.6Q45.1 27.1 45.1 26.7Q45.1 26.3 45.1 25.9Q45.1 25.5 45.1 25.1Q45.1 24.7 45.1 24.4Q45.1 24 45.1 23.8Q45.2 23.5 45.2 23.3Q45.2 23.1 46.4 23Q47.6 22.9 47.6 23.1Q47.7 23.3 47.8 23.6Q47.8 23.9 47.9 24.2Q47.9 24.5 48 24.9Q48 25.2 48.1 25.6Q48.2 26 48.2 26.3Q48.3 26.7 48.4 27.1Q48.5 27.4 48.6 27.7Q48.7 28 48.8 28.3Q49 28.6 49.2 28.9Q49.3 29.3 49.6 29.6Q49.8 30 50 30.4Q50.3 30.8 50.5 31.2Q50.8 31.7 51 32.2Q51.2 32.7 51.4 33.2Q51.6 33.8 51.7 34.4Q51.8 35.1 51.7 35.8Q51.6 36.5 51.4 37.1Q51.2 37.7 51 38.2Q50.7 38.7 50.5 39.2Q50.3 39.6 50.1 40Q49.9 40.4 49.8 40.6Q49.7 40.9 49.7 41.1Q49.7 41.2 49.7 41.2Q49.7 41.2 49.8 41.1Q49.8 41.1 49.9 41.2Q50 41.3 50.2 41.5Q50.4 41.7 50.7 42Q51 42.3 51.4 42.7Q51.8 43.1 52.2 43.6Q52.6 44 53 44.7Q53.4 45.3 53.6 46.1Q53.9 46.9 53.9 47.6Q54 48.3 54 48.9Q54 49.5 53.9 50.1Q53.8 50.7 53.6 51.3Q53.5 51.9 53.2 52.5Q53 53 52.8 53.6Q52.5 54.2 52.2 54.7Q51.8 55.2 51.4 55.8Q51 56.3 50.5 56.9Q50 57.5 49.4 58Q48.9 58.5 48.3 58.9Q47.7 59.4 47.1 59.8Q46.6 60.2 46 60.6Q45.5 61 45 61.3Q44.5 61.7 44.1 62Q43.8 62.3 43.5 62.6Q43.2 62.9 42.9 63.2Q42.6 63.6 42.3 64Q42 64.4 41.7 64.9Q41.4 65.3 41 65.8Q40.7 66.3 40.4 66.8Q40.1 67.2 39.8 67.7Q39.6 68.1 39.3 68.5Q39.1 68.9 38.9 69.2Q38.7 69.6 34.5 66.4ZM27 66.4Q26.7 65.3 27 65.2Q27.4 65 27.8 64.8Q28.3 64.6 28.8 64.4Q29.3 64.1 29.6 63.9Q29.9 63.7 30.2 63.4Q30.4 63.1 30.7 62.6Q31 62.2 31.3 61.8Q31.6 61.3 31.8 61Q32 60.7 33.6 62Q35.2 63.3 34.9 63.6Q34.6 63.8 34.2 64.2Q33.8 64.6 33.3 65.1Q32.8 65.5 32.3 65.9Q31.7 66.3 31 66.6Q30.4 66.9 29.8 67Q29.1 67.2 28.6 67.3Q28.1 67.4 27.7 67.4Q27.3 67.5 27 66.4ZM50.6 50Q50.8 48.2 51 48.3Q51.3 48.4 51.8 48.4Q52.2 48.5 52.7 48.6Q53.2 48.7 53.7 48.8Q54.2 48.9 54.7 49Q55.2 49.1 55.6 49.2Q56.1 49.3 56.5 49.4Q57 49.6 57.4 49.7Q57.9 49.8 58.2 49.9Q58.6 50 58.9 50.1Q59.1 50.2 59 51Q58.9 51.8 58.6 51.8Q58.3 51.8 57.9 51.8Q57.6 51.8 57.1 51.8Q56.7 51.7 56.2 51.7Q55.7 51.7 55.3 51.7Q54.8 51.7 54.4 51.7Q53.9 51.7 53.4 51.7Q52.9 51.7 52.4 51.7Q51.9 51.7 51.5 51.7Q51.1 51.7 50.8 51.8Q50.4 51.8 50.6 50ZM45.2 42Q45.4 43.6 45 43.6Q44.6 43.6 44 43.7Q43.5 43.7 42.8 43.8Q42.1 43.8 41.4 43.9Q40.7 44 39.9 44Q39.2 44.1 38.4 44.2Q37.6 44.3 36.7 44.5Q35.7 44.6 34.8 44.8Q33.9 44.9 33.1 45Q32.3 45.1 31.7 45.2Q31.1 45.3 31 44.6Q30.9 43.9 31.4 43.8Q32 43.6 32.7 43.4Q33.5 43.2 34.4 43Q35.4 42.7 36.3 42.5Q37.2 42.3 38 42.1Q38.8 41.9 39.5 41.7Q40.2 41.5 41 41.4Q41.7 41.2 42.4 41Q43 40.9 43.6 40.8Q44.2 40.6 44.6 40.5Q45 40.4 45.2 42ZM50.4 35.6Q50.7 34.3 51 34.4Q51.2 34.5 51.5 34.7Q51.9 34.8 52.3 34.9Q52.7 35.1 53.1 35.2Q53.5 35.4 53.9 35.5Q54.3 35.7 54.7 35.9Q55.1 36.1 55.5 36.3Q55.9 36.4 56.3 36.6Q56.6 36.8 57 37Q57.3 37.2 57.5 37.3Q57.7 37.4 57.5 38Q57.3 38.6 57 38.5Q56.8 38.4 56.4 38.3Q56.1 38.2 55.7 38.1Q55.3 37.9 54.9 37.8Q54.4 37.7 54.1 37.6Q53.7 37.5 53.3 37.4Q52.9 37.3 52.5 37.3Q52.1 37.2 51.7 37.1Q51.3 37 50.9 37Q50.6 36.9 50.3 36.9Q50.1 36.9 50.4 35.6ZM45.6 30.4Q46 31.5 45.7 31.6Q45.4 31.7 44.9 31.8Q44.5 31.9 43.9 32.1Q43.4 32.2 42.9 32.4Q42.3 32.5 41.8 32.7Q41.3 32.8 40.8 33Q40.2 33.1 39.6 33.3Q39 33.5 38.5 33.7Q37.9 33.8 37.4 34Q36.9 34.1 36.5 34.2Q36.2 34.3 36 33.8Q35.8 33.3 36.1 33.1Q36.5 33 37 32.8Q37.4 32.6 38 32.3Q38.5 32.1 39.1 31.9Q39.7 31.6 40.2 31.4Q40.7 31.2 41.2 31Q41.7 30.8 42.2 30.5Q42.8 30.3 43.3 30.1Q43.8 29.9 44.2 29.7Q44.6 29.5 44.9 29.4Q45.2 29.3 45.6 30.4ZM51.3 47a3.8 3.8 0 1 1 7.6 0a3.8 3.8 0 1 1 -7.6 0ZM55.4 45.8a5.6 5.6 0 1 1 11.2 0a5.6 5.6 0 1 1 -11.2 0ZM62.4 47.7a4.3 4.3 0 1 1 8.6 0a4.3 4.3 0 1 1 -8.6 0ZM61 47.6Q70.1 48.5 70.4 48.6Q70.6 48.6 70.8 48.8Q71.1 48.9 71.3 49Q71.4 49.2 71.6 49.4Q71.7 49.6 71.8 49.9Q71.9 50.1 72 50.4Q72 50.6 72 50.9Q71.9 51.1 71.8 51.3Q71.7 51.5 71.6 51.7Q71.4 51.9 71.3 52Q71.1 52.2 70.8 52.2Q70.6 52.3 70.4 52.3Q70.1 52.3 61 51.4Q51.9 50.5 51.6 50.4Q51.4 50.4 51.2 50.3Q50.9 50.1 50.7 50Q50.6 49.8 50.4 49.6Q50.3 49.4 50.2 49.1Q50.1 48.9 50 48.7Q50 48.4 50 48.2Q50.1 47.9 50.2 47.7Q50.3 47.5 50.4 47.3Q50.6 47.1 50.7 47Q50.9 46.9 51.2 46.8Q51.4 46.7 51.6 46.7Q51.9 46.7 61 47.6ZM18.2 42.4a3.6 3.6 0 1 1 7.2 0a3.6 3.6 0 1 1 -7.2 0ZM22.2 40.1a5.3 5.3 0 1 1 10.7 0a5.3 5.3 0 1 1 -10.7 0ZM28.8 40.7a4.1 4.1 0 1 1 8.3 0a4.1 4.1 0 1 1 -8.3 0ZM27.5 41.8Q36.2 40.9 36.4 40.9Q36.7 40.9 36.9 41Q37.1 41.1 37.3 41.2Q37.5 41.3 37.6 41.5Q37.8 41.7 37.8 41.9Q37.9 42.1 38 42.3Q38 42.5 38 42.8Q37.9 43 37.8 43.2Q37.8 43.5 37.6 43.7Q37.5 43.9 37.3 44Q37.1 44.2 36.9 44.3Q36.7 44.4 36.4 44.5Q36.2 44.5 27.5 45.4Q18.8 46.3 18.6 46.3Q18.3 46.3 18.1 46.2Q17.9 46.1 17.7 46Q17.5 45.9 17.4 45.7Q17.2 45.5 17.2 45.3Q17.1 45.1 17 44.9Q17 44.6 17 44.4Q17.1 44.2 17.2 43.9Q17.2 43.7 17.4 43.5Q17.5 43.3 17.7 43.2Q17.9 43 18.1 42.9Q18.3 42.8 18.6 42.7Q18.8 42.7 27.5 41.8ZM50.4 35.3a3.3 3.3 0 1 1 6.6 0a3.3 3.3 0 1 1 -6.6 0ZM53.7 34.2a4.8 4.8 0 1 1 9.7 0a4.8 4.8 0 1 1 -9.7 0ZM59.4 35.6a3.7 3.7 0 1 1 7.5 0a3.7 3.7 0 1 1 -7.5 0ZM58.5 35.7Q65.9 36.3 66.1 36.4Q66.3 36.4 66.5 36.5Q66.7 36.6 66.9 36.7Q67 36.9 67.2 37.1Q67.3 37.2 67.4 37.4Q67.4 37.7 67.5 37.9Q67.5 38.1 67.5 38.3Q67.4 38.5 67.4 38.7Q67.3 38.9 67.2 39Q67 39.2 66.9 39.3Q66.7 39.4 66.5 39.5Q66.3 39.6 66.1 39.6Q65.9 39.6 58.5 39Q51.1 38.4 50.9 38.4Q50.7 38.3 50.5 38.2Q50.3 38.1 50.1 38Q50 37.8 49.8 37.7Q49.7 37.5 49.6 37.3Q49.6 37.1 49.5 36.9Q49.5 36.6 49.5 36.4Q49.6 36.2 49.6 36Q49.7 35.8 49.8 35.7Q50 35.5 50.1 35.4Q50.3 35.3 50.5 35.2Q50.7 35.2 50.9 35.1Q51.1 35.1 58.5 35.7ZM26.2 31.8a3.2 3.2 0 1 1 6.4 0a3.2 3.2 0 1 1 -6.4 0ZM29.3 29.9a4.7 4.7 0 1 1 9.4 0a4.7 4.7 0 1 1 -9.4 0ZM34.8 30.6a3.6 3.6 0 1 1 7.3 0a3.6 3.6 0 1 1 -7.3 0ZM34 31.4Q40.9 30.9 41.1 30.9Q41.3 30.9 41.5 30.9Q41.7 31 41.9 31.1Q42 31.2 42.2 31.4Q42.3 31.5 42.4 31.7Q42.4 31.9 42.5 32.1Q42.5 32.3 42.5 32.5Q42.4 32.7 42.4 32.9Q42.3 33.1 42.2 33.3Q42 33.5 41.9 33.6Q41.7 33.8 41.5 33.9Q41.3 34 41.1 34Q40.9 34 34 34.6Q27.1 35.2 26.9 35.1Q26.7 35.1 26.5 35.1Q26.3 35 26.1 34.9Q26 34.8 25.8 34.6Q25.7 34.5 25.6 34.3Q25.6 34.1 25.5 33.9Q25.5 33.7 25.5 33.5Q25.6 33.3 25.6 33.1Q25.7 32.9 25.8 32.7Q26 32.5 26.1 32.4Q26.3 32.2 26.5 32.1Q26.7 32 26.9 32Q27.1 32 34 31.4ZM35.9 22.2a4.2 4.2 0 1 1 8.4 0a4.2 4.2 0 1 1 -8.4 0ZM39.8 20.2a6.2 6.2 0 1 1 12.4 0a6.2 6.2 0 1 1 -12.4 0ZM46.9 21.6a4.8 4.8 0 1 1 9.6 0a4.8 4.8 0 1 1 -9.6 0ZM46 22.2Q54.9 22.2 55.2 22.2Q55.4 22.3 55.7 22.4Q55.9 22.5 56.2 22.6Q56.4 22.8 56.6 23Q56.7 23.2 56.8 23.5Q56.9 23.8 57 24Q57 24.3 57 24.6Q56.9 24.8 56.8 25.1Q56.7 25.3 56.6 25.6Q56.4 25.8 56.2 26Q55.9 26.1 55.7 26.2Q55.4 26.3 55.2 26.4Q54.9 26.4 46 26.4Q37.1 26.4 36.8 26.4Q36.6 26.3 36.3 26.2Q36.1 26.1 35.8 26Q35.6 25.8 35.4 25.6Q35.3 25.3 35.2 25.1Q35.1 24.8 35 24.6Q35 24.3 35 24Q35.1 23.8 35.2 23.5Q35.3 23.2 35.4 23Q35.6 22.8 35.8 22.6Q36.1 22.5 36.3 22.4Q36.6 22.3 36.8 22.2Q37.1 22.2 46 22.2ZM35 64.8Q24.5 64.8 26.8 63.8Q29 62.8 32 62.5Q35 62.2 38 62.4Q41 62.6 43.2 63.7Q45.5 64.8 35 64.8Z"/>
+        <rect x="21.5" y="64.4" width="37" height="2.8" rx="1.3"/>
+        <path d="M23.4 67.2h33.2c-.3 2.9-2.3 5-5.4 5.4H28.8c-3.1-.4-5.1-2.5-5.4-5.4z"/>
+    </g>
+</svg>{{end}}
+
 {{define "layout"}}<!DOCTYPE html>
 <html lang="en" data-bs-theme="{{if .Dark}}dark{{else}}light{{end}}">
 <head>
-    <link rel="icon" type="image/png" href="/static/favicon.png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    {{template "head" .}}
     <title>{{with .Title}}{{.}} · {{end}}Bonsai Water System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/static/css/custom.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </head>
 <body>
-<main class="py-3">
-    <div class="container">
-        {{template "navbar" .}}
-        {{template "breadcrumb" .}}
-        {{template "cleaning" .}}
-        {{template "content" .}}
+<div class="ws-shell">
+    {{template "sidebar" .}}
+    <div class="ws-main">
+        {{template "topbar" .}}
+        <main class="ws-content{{if .Back}} narrow{{end}}">
+            {{template "breadcrumb" .}}
+            {{template "cleaning" .}}
+            {{template "content" .}}
+        </main>
+        {{template "footer" .}}
     </div>
-</main>
-{{template "footer" .}}
+</div>
 {{template "bottomnav" .}}
-{{if .Refresh}}
+{{template "confirm" .}}
 <script>
     (() => {
         let submitting = false;
-        document.addEventListener("submit", () => { submitting = true; });
+        const modalEl = document.getElementById("confirmModal");
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        const accept = document.getElementById("confirmAccept");
+        let pending = null;
+
+        document.addEventListener("submit", e => {
+            const form = e.target;
+            if (form.dataset.confirm) {
+                e.preventDefault();
+                pending = form;
+                document.getElementById("confirmTitle").textContent = form.dataset.confirmTitle || "Are you sure?";
+                document.getElementById("confirmText").textContent = form.dataset.confirm;
+                accept.textContent = form.dataset.confirmAction || "Confirm";
+                accept.className = "btn " + (form.dataset.confirmVariant === "primary" ? "btn-primary" : "btn-danger");
+                modal.show();
+                return;
+            }
+            submitting = true;
+        });
+
+        accept.addEventListener("click", () => {
+            if (!pending) return;
+            submitting = true;
+            accept.disabled = true;
+            pending.submit();
+        });
+        modalEl.addEventListener("hidden.bs.modal", () => { pending = null; accept.disabled = false; });
+
+        document.addEventListener("click", e => {
+            const btn = e.target.closest("[data-step]");
+            if (!btn) return;
+            const input = btn.closest(".ws-stepper").querySelector("input");
+            const min = Number(input.min) || 1;
+            const max = Number(input.max) || Infinity;
+            const next = (Number(input.value) || 0) + Number(btn.dataset.step);
+            input.value = Math.min(max, Math.max(min, next));
+            input.dispatchEvent(new Event("input", {bubbles: true}));
+        });
+
+        const rtf = new Intl.RelativeTimeFormat("en", {numeric: "auto"});
+        const relative = () => document.querySelectorAll("time[data-relative]").forEach(el => {
+            const diff = (new Date(el.getAttribute("datetime")) - Date.now()) / 1000;
+            const abs = Math.abs(diff);
+            const [value, unit] = abs < 60 ? [diff, "second"] : abs < 3600 ? [diff / 60, "minute"]
+                : abs < 86400 ? [diff / 3600, "hour"] : [diff / 86400, "day"];
+            el.textContent = rtf.format(Math.round(value), unit);
+        });
+        relative();
+        setInterval(relative, 30000);
+
+        {{if .Refresh}}
         setInterval(() => {
-            if (!submitting && !document.hidden) location.reload();
+            if (!submitting && !document.hidden && !document.querySelector(".modal.show, .dropdown-menu.show")) {
+                location.reload();
+            }
         }, 10000);
+        {{end}}
     })();
 </script>
-{{end}}
 </body>
 </html>
 {{end}}
@@ -40,61 +112,74 @@
 {{define "auth"}}<!DOCTYPE html>
 <html lang="en" data-bs-theme="{{if and .Status (not .Status.IsDay)}}dark{{else}}light{{end}}">
 <head>
-    <link rel="icon" type="image/png" href="/static/favicon.png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{template "title" .}}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="/static/css/custom.css">
+    {{template "head" .}}
+    <title>{{template "title" .}} · Bonsai Water System</title>
 </head>
 <body>
-<main class="py-3">
-    <div class="d-flex align-items-center justify-content-center vh-100">
-        <div class="card shadow-sm p-4 w-100 text-center" style="max-width: 400px;">
-            <img src="/static/bonsai_water_system_logo.png"
-                 alt="Bonsai Water System Logo"
-                 class="mb-3"
-                 style="height: 200px; width: auto;">
-            {{template "content" .}}
-        </div>
+<main class="ws-auth">
+    <div class="ws-auth-card">
+        {{template "content" .}}
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </main>
+<script>
+    document.querySelectorAll("[data-reveal]").forEach(btn => btn.addEventListener("click", () => {
+        const input = document.getElementById(btn.dataset.reveal);
+        const show = input.type === "password";
+        input.type = show ? "text" : "password";
+        btn.textContent = show ? "Hide" : "Show";
+        btn.setAttribute("aria-pressed", show);
+    }));
+</script>
 </body>
 </html>
 {{end}}
 
-{{define "navlink"}}
-<li class="nav-item">
-    <a class="nav-link{{if .Active}} active{{end}}"{{if .Active}} aria-current="page"{{end}} href="{{.Href}}">
-        <i class="bi {{.Icon}} me-1"></i>{{.Label}}
-    </a>
-</li>
+{{define "password_input"}}
+<div class="ws-password">
+    <input type="password" class="form-control" id="{{.}}" name="{{.}}" required>
+    <button type="button" class="btn btn-ghost ws-reveal" data-reveal="{{.}}" aria-pressed="false" aria-label="Show password">Show</button>
+</div>
 {{end}}
 
-{{define "navbar"}}
-<nav class="navbar navbar-expand-md border-bottom shadow-sm">
-    <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-            <img src="/static/logo-icon.png"
-                 alt="Logo"
-                 height="48"
-                 class="d-inline-block align-middle"
-                 style="width: auto; max-height: 48px;">
-            <span class="fs-5 text-nowrap">Bonsai Water System</span>
-        </a>
-        <ul class="navbar-nav flex-row ms-auto d-none d-md-flex">
-            {{template "navlink" (navItem .Page "status" "/" "bi-speedometer2" "Status")}}
-            {{template "navlink" (navItem .Page "logs" "/logs" "bi-list-columns-reverse" "Logs")}}
-            {{template "navlink" (navItem .Page "programs" "/programs" "bi-calendar-check" "Programs")}}
-            {{template "navlink" (navItem .Page "zones" "/zones" "bi-diagram-3" "Zones")}}
-            {{template "navlink" (navItem .Page "relays" "/relays" "bi-toggles" "Relays")}}
-        </ul>
-        <a class="nav-link d-flex align-items-center ms-auto ms-md-3" href="/logout" title="Logout">
-            <i class="bi bi-box-arrow-right fs-5"></i><span class="d-none d-md-inline ms-1">Logout</span>
-        </a>
-    </div>
+{{define "stepper"}}
+<div class="ws-stepper">
+    <button type="button" data-step="-5" aria-label="5 seconds less">−</button>
+    <input type="number" min="1" max="{{maxSeconds}}" id="{{.}}" name="{{.}}" inputmode="numeric" required>
+    <button type="button" data-step="5" aria-label="5 seconds more">+</button>
+</div>
+{{end}}
+
+{{define "sidebar"}}
+<nav class="ws-sidebar d-none d-md-flex" aria-label="Main">
+    <a class="ws-brand" href="/">{{template "logo" 34}}<span>Bonsai<small>Water System</small></span></a>
+    {{template "navlink" (navItem .Page "status" "/" "bi-speedometer2" "Status")}}
+    {{template "navlink" (navItem .Page "zones" "/zones" "bi-flower1" "Zones")}}
+    {{template "navlink" (navItem .Page "programs" "/programs" "bi-calendar-week" "Programs")}}
+    {{template "navlink" (navItem .Page "relays" "/relays" "bi-toggles" "Relays")}}
+    {{template "navlink" (navItem .Page "logs" "/logs" "bi-clock-history" "Logs")}}
+    <span class="flex-grow-1"></span>
+    <a class="ws-side-link" href="/logout"><i class="bi bi-box-arrow-right"></i>Log out</a>
 </nav>
+{{end}}
+
+{{define "navlink"}}
+<a class="ws-side-link{{if .Active}} active{{end}}"{{if .Active}} aria-current="page"{{end}} href="{{.Href}}"><i class="bi {{.Icon}}"></i>{{.Label}}</a>
+{{end}}
+
+{{define "topbar"}}
+<header class="ws-topbar d-md-none">
+    <a class="ws-brand" href="/">{{template "logo" 28}}<span>Bonsai</span></a>
+    <div class="d-flex align-items-center gap-2">
+        {{with .Status}}{{template "weather_chip" .}}{{end}}
+        <a class="ws-icon-link" href="/logout" title="Log out" aria-label="Log out"><i class="bi bi-box-arrow-right"></i></a>
+    </div>
+</header>
+{{end}}
+
+{{define "weather_chip"}}
+{{if .IsRaining}}<span class="ws-chip water"><i class="bi bi-cloud-rain"></i>Raining</span>
+{{else if .IsDay}}<span class="ws-chip sun"><i class="bi bi-sun"></i>Sunny</span>
+{{else}}<span class="ws-chip"><i class="bi bi-moon-stars"></i>Clear night</span>{{end}}
 {{end}}
 
 {{define "bottomlink"}}
@@ -104,67 +189,73 @@
 {{end}}
 
 {{define "bottomnav"}}
-<nav class="bottom-nav navbar fixed-bottom d-md-none border-top bg-body p-0" aria-label="Main">
+<nav class="ws-bottomnav fixed-bottom d-md-none" aria-label="Main">
     <div class="d-flex w-100 text-center">
         {{template "bottomlink" (navItem .Page "status" "/" "bi-speedometer2" "Status")}}
-        {{template "bottomlink" (navItem .Page "zones" "/zones" "bi-diagram-3" "Zones")}}
-        {{template "bottomlink" (navItem .Page "programs" "/programs" "bi-calendar-check" "Programs")}}
+        {{template "bottomlink" (navItem .Page "zones" "/zones" "bi-flower1" "Zones")}}
+        {{template "bottomlink" (navItem .Page "programs" "/programs" "bi-calendar-week" "Programs")}}
         {{template "bottomlink" (navItem .Page "relays" "/relays" "bi-toggles" "Relays")}}
-        {{template "bottomlink" (navItem .Page "logs" "/logs" "bi-list-columns-reverse" "Logs")}}
+        {{template "bottomlink" (navItem .Page "logs" "/logs" "bi-clock-history" "Logs")}}
     </div>
 </nav>
 {{end}}
 
 {{define "cleaning"}}
 {{if .Cleaning}}
-<div class="alert alert-info d-flex align-items-center gap-2 mt-3 mb-0" role="status">
+<div class="ws-banner" role="status">
     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-    Cleaning in progress – watering actions are disabled until it finishes.
+    Cleaning in progress. Watering actions are disabled until it finishes.
 </div>
 {{end}}
 {{end}}
 
 {{define "breadcrumb"}}
 {{with .Back}}
-<nav aria-label="breadcrumb" class="mt-3">
-    <ol class="breadcrumb mb-0">
-        <li class="breadcrumb-item"><a href="{{.Href}}">{{.Label}}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{{$.Title}}</li>
-    </ol>
+<nav aria-label="breadcrumb" class="ws-crumb">
+    <a href="{{.Href}}"><i class="bi bi-chevron-left"></i> {{.Label}}</a>
 </nav>
 {{end}}
 {{end}}
 
 {{define "form_buttons"}}
-<div class="d-flex flex-column-reverse flex-sm-row gap-2">
-    {{with .Back}}<a href="{{.Href}}" class="btn btn-outline-secondary flex-fill">Cancel</a>{{end}}
-    <button type="submit" class="btn btn-primary flex-fill"{{if .Disabled}} disabled{{end}}>{{.Label}}</button>
+<div class="ws-form-buttons">
+    {{with .Back}}<a href="{{.Href}}" class="btn btn-ghost">Cancel</a>{{end}}
+    <button type="submit" class="btn btn-primary"{{if .Disabled}} disabled{{end}}>{{.Label}}</button>
 </div>
 {{end}}
 
 {{define "alerts"}}
 {{with .Error}}
-<div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-    {{.}}
+<div class="ws-alert error alert fade show mb-0" role="alert">
+    <i class="bi bi-exclamation-circle"></i><span>{{.}}</span>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 {{end}}
 {{with .Success}}
-<div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-    {{.}}
+<div class="ws-alert success alert fade show mb-0" role="status">
+    <i class="bi bi-check-circle"></i><span>{{.}}</span>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 {{end}}
 {{end}}
 
-{{define "footer"}}
-<footer class="text-muted mt-5 border-top py-4">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col text-center text-md-start">
-                <span class="fw-bold">Bonsai Water System</span> &copy; 2026 – All rights reserved.
+{{define "confirm"}}
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body d-flex flex-column gap-2 p-4">
+                <h2 class="modal-title" id="confirmTitle">Are you sure?</h2>
+                <p class="ws-muted mb-0" id="confirmText"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0 px-4 pb-4 gap-2">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmAccept">Confirm</button>
             </div>
         </div>
     </div>
-</footer>
+</div>
+{{end}}
+
+{{define "footer"}}
+<footer class="ws-footer">Bonsai Water System · 2026</footer>
 {{end}}

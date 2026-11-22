@@ -1,31 +1,51 @@
 {{define "content"}}
 {{$action := printf "/execution/%s" .Data.Zone.ID}}
 {{if .Data.Fertilizer}}{{$action = printf "/fertilizer/%s" .Data.Zone.ID}}{{end}}
-{{$cleaning := .Cleaning}}
-<div class="container">
-    <h2 class="text-center my-4">
-        {{if .Data.Fertilizer}}Water and fertilize{{else}}Water{{end}} <span class="text-primary">{{.Data.Zone.Name}}</span>
-    </h2>
-    {{template "alerts" .}}
-
-    <div class="p-4 border rounded shadow-sm mx-auto" style="max-width: 400px;">
-        <p class="form-label mb-2">Quick start</p>
-        <div class="d-flex gap-2 mb-4">
-            {{range .Data.Quick}}
-            <form method="POST" action="{{$action}}" class="flex-fill">
-                <input type="hidden" name="seconds" value="{{.}}">
-                <button type="submit" class="btn btn-outline-primary w-100"{{if $cleaning}} disabled{{end}}>{{.}} s</button>
-            </form>
-            {{end}}
-        </div>
-
-        <form method="POST" action="{{$action}}">
-            <div class="mb-3">
-                <label for="seconds" class="form-label">Custom seconds</label>
-                <input type="number" min="1" max="{{maxSeconds}}" class="form-control text-center" id="seconds" name="seconds" required>
-            </div>
-            {{template "form_buttons" (buttons .Back "Start" .Cleaning)}}
-        </form>
-    </div>
+<div class="ws-page-head">
+    <h1>{{if .Data.Fertilizer}}Fertilize{{else}}Water{{end}} {{.Data.Zone.Name}}</h1>
 </div>
+{{template "alerts" .}}
+
+<form method="POST" action="{{$action}}" class="ws-card ws-form" id="executeForm">
+    <div>
+        <span class="ws-field-label">Quick pick</span>
+        <div class="ws-quick" role="group" aria-label="Quick pick">
+            {{range .Data.Quick}}<button type="button" class="btn btn-ws" data-quick="{{.}}">{{.}} s</button>{{end}}
+        </div>
+    </div>
+    <div>
+        <label for="seconds" class="form-label">Seconds</label>
+        {{template "stepper" "seconds"}}
+        <div class="form-text">Between 1 and {{maxSeconds}} seconds.</div>
+    </div>
+    <div class="ws-summary" aria-live="polite">
+        Runs <b>{{.Data.Zone.Name}}</b> on relay{{if gt (len .Data.Zone.Relays) 1}}s{{end}}
+        <b>{{range $i, $r := .Data.Zone.Relays}}{{if $i}}, {{end}}{{$r}}{{end}}</b>
+        for <b id="summarySeconds">…</b>, {{if .Data.Fertilizer}}with water and fertilizer{{else}}water only{{end}}.
+    </div>
+    <div class="ws-form-buttons">
+        {{with .Back}}<a href="{{.Href}}" class="btn btn-ghost">Cancel</a>{{end}}
+        <button type="submit" class="btn {{if .Data.Fertilizer}}btn-success{{else}}btn-primary{{end}}"{{if .Cleaning}} disabled{{end}}>
+            <i class="bi {{if .Data.Fertilizer}}bi-flower2{{else}}bi-droplet{{end}}"></i>Start {{if .Data.Fertilizer}}fertilizing{{else}}watering{{end}}
+        </button>
+    </div>
+</form>
+
+<script>
+    (() => {
+        const input = document.getElementById("seconds");
+        const out = document.getElementById("summarySeconds");
+        const quick = document.querySelectorAll("[data-quick]");
+        const sync = () => {
+            out.textContent = input.value ? input.value + " s" : "…";
+            quick.forEach(b => b.classList.toggle("active", b.dataset.quick === input.value));
+        };
+        quick.forEach(b => b.addEventListener("click", () => {
+            input.value = b.dataset.quick;
+            sync();
+        }));
+        input.addEventListener("input", sync);
+        sync();
+    })();
+</script>
 {{end}}

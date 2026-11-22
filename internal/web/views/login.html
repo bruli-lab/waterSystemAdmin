@@ -1,14 +1,20 @@
-{{define "title"}}Init session{{end}}
+{{define "title"}}Sign in{{end}}
 {{define "content"}}
-<h4 class="mb-3">Init session</h4>
+<div class="ws-auth-head">
+    {{template "logo" 88}}
+    <h1>Bonsai Water System</h1>
+    <p>Sign in to manage zones and programs.</p>
+</div>
 {{template "alerts" .}}
-<form method="POST" action="/login">
-    <div class="mb-3 text-start">
+<form method="POST" action="/login" class="ws-form">
+    <div>
         <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" name="password" required autofocus>
+        {{template "password_input" "password"}}
     </div>
-    <div class="d-grid">
-        <button type="submit" class="btn btn-primary">Access</button>
-    </div>
+    <button type="submit" class="btn btn-primary py-2">Sign in</button>
 </form>
+{{with .Status}}
+<p class="ws-meta text-center mb-0">{{printf "%.1f" .Temperature}} °C · {{printf "%.0f" .Humidity}} %{{if .IsRaining}} · raining{{end}}</p>
+{{end}}
+<script>document.getElementById("password").focus();</script>
 {{end}}

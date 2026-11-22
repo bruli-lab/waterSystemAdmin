@@ -1,96 +1,62 @@
 {{define "content"}}
-<div class="container">
-    <h2 class="text-center my-4">System Status</h2>
-    {{template "alerts" .}}
+<div class="ws-page-head">
+    <h1>Status</h1>
     {{with .Status}}
-    <div class="row g-4 justify-content-center">
-        <div class="col-12 col-sm-6 col-lg-4">
-            <div class="card border-secondary shadow-sm">
-                <div class="card-body text-center bg-secondary bg-opacity-25">
-                    <h5 class="card-title">System started at</h5>
-                    <p class="card-text text-muted">{{.SystemStartedAt.Format "02 Jan 2006 15:04:05"}}</p>
-                </div>
-            </div>
-        </div>
+    <form method="POST" action="/update-status" class="d-flex align-items-center gap-2">
+        <span class="ws-meta" title="{{.UpdatedAt.Format "02 Jan 2006 15:04:05"}}">Updated <time data-relative datetime="{{.UpdatedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.UpdatedAt.Format "15:04:05"}}</time></span>
+        <button type="submit" class="btn btn-ws btn-sm"><i class="bi bi-arrow-clockwise"></i>Refresh</button>
+    </form>
+    {{end}}
+</div>
+{{template "alerts" .}}
+{{with .Status}}
+<div class="ws-hero{{if not .Active}} off{{end}}">
+    <div class="ws-hero-state">
+        <span class="ws-label">System</span>
+        <strong>{{if .Active}}Watering on{{else}}Watering off{{end}}</strong>
+        <span class="ws-muted small">{{if .Active}}Programs will run on schedule.{{else}}No program will run until you turn it on.{{end}}</span>
+    </div>
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <span class="d-none d-md-inline">{{template "weather_chip" .}}</span>
+        <form method="POST" action="{{if .Active}}/deactivate{{else}}/activate{{end}}">
+            <button type="submit" class="ws-switch{{if .Active}} on{{end}}" role="switch" aria-checked="{{if .Active}}true{{else}}false{{end}}">
+                <span class="ws-switch-track" aria-hidden="true"></span>
+                <span>{{if .Active}}On{{else}}Off{{end}}</span>
+            </button>
+        </form>
+    </div>
+</div>
 
-        <div class="col-12 col-sm-6 col-lg-4">
-            <div class="card border-info shadow-sm">
-                <div class="card-body text-center bg-primary bg-opacity-25">
-                    <h5 class="card-title">Current temperature</h5>
-                    <p class="card-text display-6">{{printf "%.1f" .Temperature}} °C</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-sm-6 col-lg-4">
-            <div class="card border-warning shadow-sm">
-                {{if and .IsRaining .IsDay}}
-                <div class="card-body text-center bg-secondary bg-opacity-25">
-                    <h5 class="card-title">Weather</h5>
-                    <span class="fs-1 text-primary">🌧️</span>
-                    <p class="text-muted">Raining (Day)</p>
-                </div>
-                {{else if .IsRaining}}
-                <div class="card-body text-center bg-dark bg-opacity-25 text-light">
-                    <h5 class="card-title">Weather</h5>
-                    <span class="fs-1 text-light">🌧️</span>
-                    <p class="text-light">Raining (Night)</p>
-                </div>
-                {{else if .IsDay}}
-                <div class="card-body text-center bg-warning bg-opacity-25">
-                    <h5 class="card-title">Weather</h5>
-                    <span class="fs-1 text-warning">☀️</span>
-                    <p class="text-muted">Sunny (Day)</p>
-                </div>
-                {{else}}
-                <div class="card-body text-center bg-primary bg-opacity-25 text-light">
-                    <h5 class="card-title">Weather</h5>
-                    <span class="fs-1 text-light">🌙</span>
-                    <p class="text-light">Clear (Night)</p>
-                </div>
-                {{end}}
-            </div>
-        </div>
-
-        <div class="col-12 col-sm-6 col-lg-4">
-            <div class="card border-secondary shadow-sm">
-                <div class="card-body text-center bg-secondary bg-opacity-25">
-                    <h5 class="card-title">System updated at</h5>
-                    <p class="card-text text-muted">{{.UpdatedAt.Format "02 Jan 2006 15:04:05"}}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-sm-6 col-lg-4">
-            <div class="card border-info shadow-sm">
-                <div class="card-body text-center bg-primary bg-opacity-25">
-                    <h5 class="card-title">Current humidity</h5>
-                    <p class="card-text display-6">{{printf "%.1f" .Humidity}} %</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-sm-6 col-lg-4">
-            <div class="card border-success shadow-sm">
-                <div class="card-body text-center {{if .Active}}bg-success{{else}}bg-danger{{end}} bg-opacity-25">
-                    <h5 class="card-title">Active</h5>
-                    {{if .Active}}
-                    <form method="POST" action="/deactivate">
-                        <button class="btn btn-outline-danger" type="submit">🟢 System ON – Click to turn OFF</button>
-                    </form>
-                    {{else}}
-                    <form method="POST" action="/activate">
-                        <button class="btn btn-outline-danger" type="submit">🔴 System OFF – Click to turn ON</button>
-                    </form>
-                    {{end}}
-                </div>
+<div class="ws-grid-3">
+    <div class="ws-card">
+        <span class="ws-label">Temperature</span>
+        <span class="ws-big">{{printf "%.1f" .Temperature}}<small>°C</small></span>
+        <div class="ws-bar"><span style="width: {{percent .Temperature 40}}%; background: var(--ws-sun)"></span></div>
+    </div>
+    <div class="ws-card">
+        <span class="ws-label">Humidity</span>
+        <span class="ws-big">{{printf "%.0f" .Humidity}}<small>%</small></span>
+        <div class="ws-bar"><span style="width: {{percent .Humidity 100}}%; background: var(--ws-water)"></span></div>
+    </div>
+    <div class="ws-card ws-span-mobile">
+        <span class="ws-label">Weather</span>
+        <div class="d-flex align-items-center gap-3">
+            {{if .IsRaining}}<i class="bi bi-cloud-rain fs-1" style="color: var(--ws-water)"></i>
+            {{else if .IsDay}}<i class="bi bi-sun fs-1" style="color: var(--ws-sun)"></i>
+            {{else}}<i class="bi bi-moon-stars fs-1 ws-muted"></i>{{end}}
+            <div>
+                <div class="fw-semibold">{{if .IsRaining}}Raining{{else if .IsDay}}Sunny{{else}}Clear night{{end}}</div>
+                <div class="ws-muted small">{{if .IsDay}}Daytime{{else}}Night{{end}}{{if .IsRaining}} · rain detected{{end}}</div>
             </div>
         </div>
     </div>
-    {{end}}
-
-    <form method="POST" action="/update-status" class="d-flex justify-content-center mt-4">
-        <button type="submit" class="btn btn-primary btn-lg shadow w-100 w-md-auto">🔄 Update</button>
-    </form>
 </div>
+
+<p class="ws-meta mb-0">Running since {{.SystemStartedAt.Format "02 Jan 2006 15:04"}} (<time data-relative datetime="{{.SystemStartedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.SystemStartedAt.Format "02 Jan"}}</time>)</p>
+{{else}}
+<div class="ws-empty">
+    <p class="mb-3">The system status is not available right now.</p>
+    <form method="POST" action="/update-status"><button type="submit" class="btn btn-ws"><i class="bi bi-arrow-clockwise"></i>Try again</button></form>
+</div>
+{{end}}
 {{end}}

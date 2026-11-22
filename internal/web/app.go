@@ -11,9 +11,11 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/bruli-lab/waterSystemAdmin/internal/api"
 	"github.com/bruli-lab/waterSystemAdmin/internal/disk"
+	"github.com/bruli-lab/waterSystemAdmin/internal/model/programs"
 	"github.com/bruli-lab/waterSystemAdmin/internal/model/status"
 	"github.com/gorilla/sessions"
 )
@@ -100,6 +102,40 @@ var templateFuncs = template.FuncMap{
 	"buttons": func(back *link, label string, disabled bool) formButtons {
 		return formButtons{Back: back, Label: label, Disabled: disabled}
 	},
+	"menu": func(edit, del, label string) rowMenu {
+		return rowMenu{Edit: edit, Delete: del, Label: label}
+	},
+	"relayItem": func(r relay, cleaning bool) relayView {
+		return relayView{Relay: r, Cleaning: cleaning}
+	},
+	"named": func(v any, names map[string]string) named {
+		return named{V: v, Names: names}
+	},
+	"percent":   percent,
+	"dayOffset": dayOffset,
+}
+
+type named struct {
+	V     any
+	Names map[string]string
+}
+
+type rowMenu struct {
+	Edit, Delete, Label string
+}
+
+type relayView struct {
+	Relay    relay
+	Cleaning bool
+}
+
+func percent(value, maxValue float64) float64 {
+	return min(max(value/maxValue*100, 0), 100)
+}
+
+func dayOffset(h programs.Hour) float64 {
+	t := time.Time(h)
+	return float64(t.Hour()*60+t.Minute()) / (24 * 60) * 100
 }
 
 func parsePages() (map[string]*template.Template, error) {
@@ -142,16 +178,16 @@ func (p *pageData) Dark() bool { return p.Status == nil || !p.Status.IsDay }
 func (p *pageData) Cleaning() bool { return p.Status != nil && p.Status.Clean }
 
 type view struct {
-	Template string
-	Page     string
-	Title    string
-	Back     *link
-	Root     string
-	Data     any
-	Error    string
-	NoStatus bool
-	Offline  bool
-	Refresh  bool
+	Template    string
+	Page        string
+	Title       string
+	Back        *link
+	Root        string
+	Data        any
+	Error       string
+	QuietStatus bool
+	Offline     bool
+	Refresh     bool
 }
 
 func (v *view) fail(msg string, err error) {
@@ -166,11 +202,11 @@ func errMessage(msg string, err error) string {
 	return msg + ": " + err.Error()
 }
 
-func (a *App) loadStatus(r *http.Request, pd *pageData) {
+func (a *App) loadStatus(r *http.Request, pd *pageData, quiet bool) {
 	st, err := a.api.Status.Find(r.Context())
 	if err != nil {
 		a.log.ErrorContext(r.Context(), "error reading status", slog.String("error", err.Error()))
-		if pd.Error == "" {
+		if pd.Error == "" && !quiet {
 			pd.Error = errMessage("Could not read the system status", err)
 		}
 		return
@@ -188,8 +224,8 @@ func (a *App) render(w http.ResponseWriter, r *http.Request, v *view) {
 		pd.Error = flashErr
 	}
 
-	if !v.NoStatus && !v.Offline {
-		a.loadStatus(r, &pd)
+	if !v.Offline {
+		a.loadStatus(r, &pd, v.QuietStatus)
 	}
 
 	tpl, ok := a.pages[v.Template]

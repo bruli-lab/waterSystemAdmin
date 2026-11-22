@@ -84,7 +84,7 @@ func (a *App) Password(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-	v := view{Template: "password.html", Root: "auth", NoStatus: true}
+	v := view{Template: "password.html", Root: "auth", QuietStatus: true}
 	if r.Method != http.MethodPost {
 		a.render(w, r, &v)
 		return

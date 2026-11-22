@@ -1,23 +1,27 @@
 {{define "content"}}
-<div class="container">
-    <h2 class="text-center my-4">Relays</h2>
-    {{template "alerts" .}}
-    {{$cleaning := .Cleaning}}
-    <ul class="list-group">
-        {{range .Data}}
-        <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-secondary rounded-pill">{{.ID}}</span>
-                <strong>{{.Name}}</strong>
-            </div>
-            <form method="POST" action="/relays/{{.ID}}/test"
-                  onsubmit="return confirm('Switch {{.Name}} on and off to test it?')">
-                <button type="submit" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1"{{if $cleaning}} disabled{{end}}>
-                    <span class="material-symbols-outlined">power_settings_new</span>Test
-                </button>
-            </form>
-        </li>
-        {{end}}
-    </ul>
+<div class="ws-page-head">
+    <h1>Relays</h1>
+    <span class="ws-meta">Each test switches the relay on and off</span>
+</div>
+{{template "alerts" .}}
+{{$cleaning := .Cleaning}}
+<span class="ws-label">Zone relays</span>
+<div class="ws-relay-grid">
+    {{range .Data}}{{if le .ID 4}}{{template "relay" (relayItem . $cleaning)}}{{end}}{{end}}
+</div>
+<span class="ws-label">Pumps and valves</span>
+<div class="ws-relay-grid">
+    {{range .Data}}{{if gt .ID 4}}{{template "relay" (relayItem . $cleaning)}}{{end}}{{end}}
+</div>
+{{end}}
+
+{{define "relay"}}
+<div class="ws-relay">
+    <span class="ws-num">{{printf "%02d" .Relay.ID}}</span>
+    <strong>{{.Relay.Name}}</strong>
+    <form method="POST" action="/relays/{{.Relay.ID}}/test"
+          data-confirm-title="Test {{.Relay.Name}}?" data-confirm="The relay will switch on and then off." data-confirm-action="Test relay" data-confirm-variant="primary">
+        <button type="submit" class="btn btn-ws btn-sm"{{if .Cleaning}} disabled{{end}}><i class="bi bi-power"></i>Test</button>
+    </form>
 </div>
 {{end}}

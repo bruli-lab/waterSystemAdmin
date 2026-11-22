@@ -1,226 +1,157 @@
 {{define "content"}}
-<div class="container">
-    <h2 class="text-center my-4">Available programs</h2>
-    {{template "alerts" .}}
+<div class="ws-page-head">
+    <h1>Programs</h1>
 </div>
+{{template "alerts" .}}
 
 {{if .Data.Loaded}}
-<div class="accordion" id="programsAccordion">
+<nav class="ws-tabs nav" role="tablist">
+    {{range .Data.Sections}}
+    <button class="nav-link" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#tab-{{.Type}}" data-section="{{.Type}}" aria-controls="tab-{{.Type}}">
+        {{.Title}}<span class="ws-count">{{len .Programs}}</span>
+    </button>
+    {{end}}
+    <button class="nav-link" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#tab-weekly" data-section="weekly" aria-controls="tab-weekly">
+        Weekly<span class="ws-count">{{len .Data.Weekly}}</span>
+    </button>
+    <button class="nav-link" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#tab-temperature" data-section="temperature" aria-controls="tab-temperature">
+        Temperature<span class="ws-count">{{len .Data.Temperature}}</span>
+    </button>
+</nav>
+
+<div class="tab-content">
     {{range $s := .Data.Sections}}
-    <div class="accordion-item border-start border-4 border-secondary">
-        <div class="d-flex justify-content-between align-items-center gap-2 text-muted border-bottom px-3 py-2">
-            <h2 class="accordion-header m-0">
-                <button class="accordion-button collapsed" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#section-{{$s.Type}}"
-                        aria-expanded="false" aria-controls="section-{{$s.Type}}">
-                    {{$s.Title}}
-                </button>
-            </h2>
-            <a href="/programs/new?type={{$s.Type}}" class="btn btn-outline-primary btn-sm">➕ New</a>
+    <section class="tab-pane" id="tab-{{$s.Type}}" role="tabpanel">
+        <div class="ws-page-head mb-3">
+            <p class="ws-muted mb-0">
+                {{if eq $s.Type "odd"}}Runs on odd days of the month.{{else if eq $s.Type "even"}}Runs on even days of the month.{{else}}Runs every day.{{end}}
+                The only programs that can add fertilizer.
+            </p>
+            <a href="/programs/new?type={{$s.Type}}" class="btn btn-success btn-sm"><i class="bi bi-plus-lg"></i>New {{lower $s.Title}} program</a>
         </div>
-        <div id="section-{{$s.Type}}" class="accordion-collapse collapse" data-section="{{$s.Type}}">
-            <div class="accordion-body">
-                {{with $s.Programs}}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                        <tr>
-                            <th scope="col">Hour</th>
-                            <th scope="col">Executions</th>
-                            <th scope="col">Fertilizer</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {{range .}}
-                        <tr>
-                            <td class="fw-bold">{{.Hour}}</td>
-                            <td>
-                                <div class="d-flex flex-column gap-2">
-                                    {{range .Executions}}{{template "execution" .}}{{end}}
-                                </div>
-                            </td>
-                            <td class="fw-bold">
-                                {{if .Fertilizer}}
-                                <span class="badge bg-success d-inline-flex align-items-center gap-1">
-                                    <span class="material-symbols-outlined" style="font-size:18px;">compost</span>Fertilizer
-                                </span>
-                                {{else}}
-                                <span class="badge bg-primary d-inline-flex align-items-center gap-1">
-                                    <span class="material-symbols-outlined" style="font-size:18px;">water_drop</span>Water
-                                </span>
-                                {{end}}
-                            </td>
-                            <td class="text-end" style="min-width: 110px;">
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a href="/programs/edit/{{$s.Type}}/{{.Hour}}" class="btn btn-outline-secondary btn-sm" title="Edit">
-                                        <span class="material-symbols-outlined">edit</span>
-                                    </a>
-                                <form method="POST" action="/programs/delete/{{.Hour}}/{{$s.Type}}"
-                                      onsubmit="return confirm('Are you sure you want to delete all executions for this hour?')">
-                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete all for this hour">
-                                        <span class="material-symbols-outlined">delete</span>
-                                    </button>
-                                </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {{end}}
-                        </tbody>
-                    </table>
+        {{with $s.Programs}}
+        <div class="ws-timeline" aria-hidden="true">
+            {{range .}}<span class="run{{if .Fertilizer}} fert{{end}}" style="left: {{dayOffset .Hour}}%" title="{{.Hour}}"></span>{{end}}
+            <span class="now" data-now></span>
+            <span class="tick start" style="left: 0">00</span>
+            <span class="tick" style="left: 25%">06</span>
+            <span class="tick" style="left: 50%">12</span>
+            <span class="tick" style="left: 75%">18</span>
+            <span class="tick end" style="left: 100%">24</span>
+        </div>
+        <div class="ws-card">
+            {{range .}}
+            <div class="ws-prog">
+                <span class="ws-prog-key">{{.Hour}}</span>
+                <div class="ws-execs">{{range .Executions}}{{template "execution" (named . $.Data.ZoneNames)}}{{end}}</div>
+                <div class="ws-prog-side">
+                    {{if .Fertilizer}}<span class="ws-chip moss"><i class="bi bi-flower2"></i>Fertilizer</span>
+                    {{else}}<span class="ws-chip water"><i class="bi bi-droplet"></i>Water</span>{{end}}
+                    {{template "row_menu" (menu (printf "/programs/edit/%s/%s" $s.Type .Hour) (printf "/programs/delete/%s/%s" .Hour $s.Type) (printf "the %s program at %s" (lower $s.Title) .Hour))}}
                 </div>
-                {{else}}
-                <p class="text-muted">No programs</p>
-                {{end}}
             </div>
+            {{end}}
         </div>
-    </div>
+        {{else}}
+        <div class="ws-empty">No {{lower $s.Title}} programs yet.</div>
+        {{end}}
+    </section>
     {{end}}
 
-    <div class="accordion-item border-start border-4 border-secondary">
-        <div class="d-flex justify-content-between align-items-center gap-2 text-muted border-bottom px-3 py-2">
-            <h2 class="accordion-header m-0">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#section-weekly" aria-expanded="false" aria-controls="section-weekly">
-                    Weekly
-                </button>
-            </h2>
-            <a href="/programs/weekly/new" class="btn btn-outline-primary btn-sm">➕ New</a>
+    <section class="tab-pane" id="tab-weekly" role="tabpanel">
+        <div class="ws-page-head mb-3">
+            <p class="ws-muted mb-0">Runs on one day of the week, at one or more hours. Water only.</p>
+            <a href="/programs/weekly/new" class="btn btn-success btn-sm"><i class="bi bi-plus-lg"></i>New weekly program</a>
         </div>
-        <div id="section-weekly" class="accordion-collapse collapse" data-section="weekly">
-            <div class="accordion-body">
-                {{with .Data.Weekly}}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                        <tr>
-                            <th scope="col">Week day</th>
-                            <th scope="col">Executions</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {{range .}}
-                        <tr>
-                            <td class="fw-bold text-center text-secondary">{{.WeekDay}}</td>
-                            <td>{{template "hour_programs" .Programs}}</td>
-                            <td class="text-end" style="min-width: 110px;">
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a href="/programs/weekly/edit/{{.WeekDay}}" class="btn btn-outline-secondary btn-sm" title="Edit">
-                                        <span class="material-symbols-outlined">edit</span>
-                                    </a>
-                                <form method="POST" action="/programs/weekly/delete/{{.WeekDay}}"
-                                      onsubmit="return confirm('Are you sure you want to delete all executions for this day?')">
-                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete all for this day">
-                                        <span class="material-symbols-outlined">delete</span>
-                                    </button>
-                                </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {{end}}
-                        </tbody>
-                    </table>
+        {{with .Data.Weekly}}
+        <div class="ws-card">
+            {{range .}}
+            <div class="ws-prog">
+                <span class="ws-prog-key">{{slice .WeekDay.String 0 3}}</span>
+                <div class="ws-execs">{{template "hour_programs" (named .Programs $.Data.ZoneNames)}}</div>
+                <div class="ws-prog-side">
+                    {{template "row_menu" (menu (printf "/programs/weekly/edit/%s" .WeekDay) (printf "/programs/weekly/delete/%s" .WeekDay) (printf "the %s program" .WeekDay))}}
                 </div>
-                {{else}}
-                <p class="text-muted">No programs</p>
-                {{end}}
             </div>
+            {{end}}
         </div>
-    </div>
+        {{else}}
+        <div class="ws-empty">No weekly programs yet.</div>
+        {{end}}
+    </section>
 
-    <div class="accordion-item border-start border-4 border-secondary">
-        <div class="d-flex justify-content-between align-items-center gap-2 text-muted border-bottom px-3 py-2">
-            <h2 class="accordion-header m-0">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#section-temperature" aria-expanded="false" aria-controls="section-temperature">
-                    Temperature
-                </button>
-            </h2>
-            <a href="/programs/temperature/new" class="btn btn-outline-primary btn-sm">➕ New</a>
+    <section class="tab-pane" id="tab-temperature" role="tabpanel">
+        <div class="ws-page-head mb-3">
+            <p class="ws-muted mb-0">Runs at the given hours once the temperature is reached. Water only.</p>
+            <a href="/programs/temperature/new" class="btn btn-success btn-sm"><i class="bi bi-plus-lg"></i>New temperature program</a>
         </div>
-        <div id="section-temperature" class="accordion-collapse collapse" data-section="temperature">
-            <div class="accordion-body">
-                {{with .Data.Temperature}}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                        <tr>
-                            <th scope="col">Temperature</th>
-                            <th scope="col">Executions</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {{range .}}
-                        <tr>
-                            <td class="fw-bold text-center text-secondary">{{.Temperature}} °C</td>
-                            <td>{{template "hour_programs" .Programs}}</td>
-                            <td class="text-end" style="min-width: 110px;">
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a href="/programs/temperature/edit/{{.Temperature}}" class="btn btn-outline-secondary btn-sm" title="Edit">
-                                        <span class="material-symbols-outlined">edit</span>
-                                    </a>
-                                <form method="POST" action="/programs/temperature/delete/{{.Temperature}}"
-                                      onsubmit="return confirm('Are you sure you want to delete all executions for this temperature?')">
-                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete all for this temperature">
-                                        <span class="material-symbols-outlined">delete</span>
-                                    </button>
-                                </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {{end}}
-                        </tbody>
-                    </table>
+        {{with .Data.Temperature}}
+        <div class="ws-card">
+            {{range .}}
+            <div class="ws-prog">
+                <span class="ws-prog-key">{{.Temperature}} °C</span>
+                <div class="ws-execs">{{template "hour_programs" (named .Programs $.Data.ZoneNames)}}</div>
+                <div class="ws-prog-side">
+                    {{template "row_menu" (menu (printf "/programs/temperature/edit/%d" .Temperature) (printf "/programs/temperature/delete/%d" .Temperature) (printf "the program for %d °C" .Temperature))}}
                 </div>
-                {{else}}
-                <p class="text-muted">No programs</p>
-                {{end}}
             </div>
+            {{end}}
         </div>
-    </div>
+        {{else}}
+        <div class="ws-empty">No temperature programs yet.</div>
+        {{end}}
+    </section>
 </div>
 
 <script>
     (() => {
-        const sections = document.querySelectorAll('[data-section]');
-        const wanted = location.hash.slice(1);
-        const initial = [...sections].find(el => el.dataset.section === wanted) || sections[0];
-        if (initial) {
-            bootstrap.Collapse.getOrCreateInstance(initial, {toggle: false}).show();
-        }
-        sections.forEach(el => el.addEventListener('shown.bs.collapse', () => {
-            history.replaceState(null, '', '#' + el.dataset.section);
+        const tabs = [...document.querySelectorAll("[data-section]")];
+        const open = () => {
+            const wanted = location.hash.slice(1);
+            bootstrap.Tab.getOrCreateInstance(tabs.find(el => el.dataset.section === wanted) || tabs[0]).show();
+        };
+        open();
+        window.addEventListener("hashchange", open);
+        tabs.forEach(el => el.addEventListener("shown.bs.tab", () => {
+            history.replaceState(null, "", "#" + el.dataset.section);
         }));
+        const now = new Date();
+        const offset = (now.getHours() * 60 + now.getMinutes()) / 1440 * 100;
+        document.querySelectorAll("[data-now]").forEach(el => el.style.left = offset + "%");
     })();
 </script>
 {{end}}
 {{end}}
 
-{{define "execution"}}
-<div class="p-2 border rounded shadow-sm">
-    <span class="badge bg-secondary me-2">Seconds: {{.Seconds}}</span>
-    <span class="text-muted">Zones: {{join .Zones ", "}}</span>
+{{define "row_menu"}}
+<div class="dropdown">
+    <button class="btn btn-ghost ws-kebab" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="More actions">
+        <i class="bi bi-three-dots"></i>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item" href="{{.Edit}}"><i class="bi bi-pencil"></i>Edit</a></li>
+        <li>
+            <form method="POST" action="{{.Delete}}"
+                  data-confirm-title="Delete program?" data-confirm="All executions of {{.Label}} will be deleted." data-confirm-action="Delete">
+                <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash"></i>Delete</button>
+            </form>
+        </li>
+    </ul>
 </div>
 {{end}}
 
+{{define "execution"}}
+{{$names := .Names}}{{with .V}}<div class="ws-exec">
+    <span class="ws-sec">{{.Seconds}} s</span>
+    {{range .Zones}}<span class="ws-chip">{{or (index $names .) .}}</span>{{end}}
+</div>{{end}}
+{{end}}
+
 {{define "hour_programs"}}
-<div class="d-flex flex-column gap-3">
-    {{range .}}
-    <div class="p-3 border rounded shadow-sm">
-        <div class="mb-2">
-            <span class="badge bg-secondary">Hour: {{.Hour}}</span>
-        </div>
-        <div class="d-flex flex-column gap-1 ps-3">
-            {{range .Executions}}
-            <div>
-                <span class="badge bg-secondary me-2">Seconds: {{.Seconds}}</span>
-                <span class="text-muted">Zones: {{join .Zones ", "}}</span>
-            </div>
-            {{end}}
-        </div>
-    </div>
-    {{end}}
+{{$names := .Names}}{{range .V}}
+<div class="ws-sub-hour">
+    <span class="ws-mono">{{.Hour}}</span>
+    <div class="ws-execs">{{range .Executions}}{{template "execution" (named . $names)}}{{end}}</div>
 </div>
+{{end}}
 {{end}}

@@ -1,85 +1,99 @@
 {{define "content"}}
-<div class="container">
-    <h2 class="text-center my-4">{{if .Data.Key}}Edit {{.Data.Kind}} program at {{.Data.Key}}{{else}}Create New {{.Data.Kind}} program{{end}}</h2>
-    {{template "alerts" .}}
-
-    <form id="programForm" action="{{.Data.Action}}" method="POST"
-          class="p-4 border rounded shadow-sm mx-auto" style="max-width: 600px;">
-        <div class="mb-3">
-            <label for="hour" class="form-label">Hour</label>
-            {{if .Data.Key}}
-            <input type="time" class="form-control" id="hour" value="{{.Data.Key}}" disabled>
-            {{else}}
-            <input type="time" class="form-control" id="hour" name="hour" required>
-            {{end}}
-        </div>
-
-        <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="fertilizer" name="fertilizer" value="true"{{if .Data.Fertilizer}} checked{{end}}>
-            <label class="form-check-label" for="fertilizer">With fertilizer</label>
-        </div>
-
-        <div id="executions"></div>
-
-        <div class="mb-3 text-end">
-            <button type="button" class="btn btn-outline-secondary" onclick="addExecution()">➕ Add Execution</button>
-        </div>
-
-        {{if .Data.Key}}
-        {{template "form_buttons" (buttons .Back "Save Program" (not .Data.Zones))}}
-        {{else}}
-        {{template "form_buttons" (buttons .Back "Create Program" (not .Data.Zones))}}
-        {{end}}
-    </form>
+<div class="ws-page-head">
+    <h1>{{if .Data.Key}}Edit {{.Data.Kind}} program at {{.Data.Key}}{{else}}New {{.Data.Kind}} program{{end}}</h1>
 </div>
+{{template "alerts" .}}
+
+<form id="programForm" action="{{.Data.Action}}" method="POST" class="ws-card ws-form">
+    <div>
+        <label for="hour" class="form-label">Hour</label>
+        {{if .Data.Key}}
+        <input type="time" class="form-control ws-mono" id="hour" value="{{.Data.Key}}" disabled>
+        <div class="form-text">The hour cannot be changed. Delete the program and create a new one instead.</div>
+        {{else}}
+        <input type="time" class="form-control ws-mono" id="hour" name="hour" required>
+        {{end}}
+    </div>
+
+    <label class="ws-toggle-row form-switch" for="fertilizer">
+        <span>With fertilizer<small>Mixes fertilizer into every run of this program.</small></span>
+        <input type="checkbox" class="form-check-input" role="switch" id="fertilizer" name="fertilizer" value="true"{{if .Data.Fertilizer}} checked{{end}}>
+    </label>
+
+    <div class="d-flex flex-column gap-2">
+        <span class="ws-field-label mb-0">Runs</span>
+        <div id="executions" class="d-flex flex-column gap-2"></div>
+        <button type="button" class="ws-add" onclick="addExecution()"><i class="bi bi-plus-lg"></i> Add run</button>
+    </div>
+
+    {{if .Data.Key}}
+    {{template "form_buttons" (buttons .Back "Save program" (not .Data.Zones))}}
+    {{else}}
+    {{template "form_buttons" (buttons .Back "Create program" (not .Data.Zones))}}
+    {{end}}
+</form>
 
 <template id="executionTpl">
-    <div class="execution border rounded p-3 mb-3 position-relative">
-        <button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2"
-                onclick="removeExecution(this)">🗑️</button>
-        <div class="mb-3">
-            <label class="form-label">Seconds</label>
-            <input type="number" min="1" max="{{maxSeconds}}" class="form-control" name="seconds[]" required>
+    <div class="execution ws-group">
+        <div class="ws-group-head">
+            <span class="ws-label" data-run-label>Run</span>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="removeExecution(this)" aria-label="Remove run"><i class="bi bi-x-lg"></i></button>
         </div>
-        <label class="form-label">Zones</label>
-        <div class="row">
-            {{range .Data.Zones}}
-            <div class="col-6 col-sm-4 col-md-3">
-                <label class="form-check">
-                    <input class="form-check-input" type="checkbox" data-zone value="{{.ID}}">
-                    <span class="form-check-label">{{.Name}}</span>
-                </label>
-            </div>
-            {{end}}
-        </div>
+        {{template "seconds_stepper"}}
+        {{template "zone_chips" .Data.Zones}}
     </div>
 </template>
 
 <script>
-    const executions = document.getElementById('executions');
+    const executions = document.getElementById("executions");
     const initial = {{.Data.Executions}};
 
+    function renumber() {
+        executions.querySelectorAll("[data-run-label]").forEach((el, i) => el.textContent = "Run " + (i + 1));
+    }
+
     function addExecution(data) {
-        const node = document.getElementById('executionTpl').content.cloneNode(true);
+        const node = document.getElementById("executionTpl").content.cloneNode(true);
         if (data) {
             node.querySelector('[name="seconds[]"]').value = data.seconds;
-            node.querySelectorAll('[data-zone]').forEach(cb => cb.checked = data.zones.includes(cb.value));
+            node.querySelectorAll("[data-zone]").forEach(cb => cb.checked = data.zones.includes(cb.value));
         }
         executions.appendChild(node);
+        renumber();
     }
 
     function removeExecution(button) {
         if (executions.children.length > 1) {
-            button.closest('.execution').remove();
+            button.closest(".execution").remove();
+            renumber();
         }
     }
 
-    document.getElementById('programForm').addEventListener('submit', () => {
-        executions.querySelectorAll('.execution').forEach((group, i) => {
-            group.querySelectorAll('[data-zone]').forEach(cb => cb.name = `zones_${i}[]`);
+    document.getElementById("programForm").addEventListener("submit", () => {
+        executions.querySelectorAll(".execution").forEach((group, i) => {
+            group.querySelectorAll("[data-zone]").forEach(cb => cb.name = `zones_${i}[]`);
         });
     });
 
     (initial && initial.length ? initial : [null]).forEach(e => addExecution(e));
 </script>
+{{end}}
+
+{{define "seconds_stepper"}}
+<div class="ws-stepper sm">
+    <button type="button" data-step="-5" aria-label="5 seconds less">−</button>
+    <input type="number" min="1" max="{{maxSeconds}}" name="seconds[]" data-seconds inputmode="numeric" placeholder="s" aria-label="Seconds" required>
+    <button type="button" data-step="5" aria-label="5 seconds more">+</button>
+</div>
+{{end}}
+
+{{define "zone_chips"}}
+<div class="ws-zone-chips">
+    {{range .}}
+    <label>
+        <input class="btn-check" type="checkbox" data-zone value="{{.ID}}">
+        <span class="ws-zone-chip">{{.Name}}</span>
+    </label>
+    {{end}}
+</div>
 {{end}}

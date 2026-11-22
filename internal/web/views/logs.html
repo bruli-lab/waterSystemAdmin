@@ -1,24 +1,23 @@
 {{define "content"}}
-<div class="container">
-    <h2 class="text-center my-4">Execution Logs</h2>
-    {{template "alerts" .}}
-    <ul class="list-group">
-        {{range .Data}}
-        <li class="list-group-item mb-2">
-            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-1">
-                <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
-                    <span class="badge bg-primary rounded-pill">{{.ExecutedAt.Format "15:04"}}</span>
-                    <strong>{{.Zone}}</strong>
-                </div>
-                <span class="text-end">{{.Seconds}}s</span>
-            </div>
-            <div class="text-end">
-                <small class="text-muted">{{.ExecutedAt.Format "02 Jan 2006"}}</small>
-            </div>
-        </li>
-        {{else}}
-        <li class="list-group-item text-center text-muted">No logs</li>
-        {{end}}
-    </ul>
+<div class="ws-page-head">
+    <h1>Logs</h1>
+    <span class="ws-meta">Latest waterings</span>
 </div>
+{{template "alerts" .}}
+{{with .Data}}
+<div class="ws-card ws-list">
+    {{$day := ""}}
+    {{range .}}
+    {{$d := .ExecutedAt.Format "Monday, 02 Jan 2006"}}
+    {{if ne $d $day}}<div class="ws-label ws-day">{{$d}}</div>{{$day = $d}}{{end}}
+    <div class="ws-log">
+        <span class="ws-mono">{{.ExecutedAt.Format "15:04"}}</span>
+        <strong>{{.Zone}}</strong>
+        <span class="ws-chip water"><i class="bi bi-droplet"></i><span class="ws-mono">{{.Seconds}} s</span></span>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="ws-empty">No waterings logged yet.</div>
+{{end}}
 {{end}}
