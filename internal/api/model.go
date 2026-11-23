@@ -20,11 +20,13 @@ type Status struct {
 type Program struct {
 	Executions []Execution `json:"executions"`
 	Hour       string      `json:"hour"`
+	Status     string      `json:"status,omitempty"`
 }
 type FertilizerProgram struct {
 	Executions []Execution `json:"executions"`
 	Hour       string      `json:"hour"`
 	Fertilizer bool        `json:"fertilizer"`
+	Status     string      `json:"status,omitempty"`
 }
 
 type ProgramWeekly struct {
@@ -53,6 +55,23 @@ type TemperatureProgram struct {
 type UpdateFertilizerProgram struct {
 	Executions []Execution `json:"executions"`
 	Fertilizer bool        `json:"fertilizer"`
+	Status     string      `json:"status"`
+}
+
+const (
+	enabledStatus  = "enabled"
+	disabledStatus = "disabled"
+)
+
+func isEnabled(status string) bool {
+	return status != disabledStatus
+}
+
+func toStatus(enabled bool) string {
+	if enabled {
+		return enabledStatus
+	}
+	return disabledStatus
 }
 
 type UpdatePrograms struct {

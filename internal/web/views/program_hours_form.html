@@ -54,7 +54,15 @@
     <div class="hour ws-group">
         <div class="ws-group-head">
             <input type="time" name="hours[]" class="form-control ws-mono w-auto" aria-label="Hour" required>
-            <button type="button" class="btn btn-ghost btn-sm" onclick="removeHour(this)" aria-label="Remove hour"><i class="bi bi-trash"></i></button>
+            <div class="d-flex align-items-center gap-2">
+                {{if .Data.Key}}
+                <label class="form-check form-switch mb-0 d-flex align-items-center gap-2">
+                    <input type="checkbox" class="form-check-input mt-0" role="switch" value="true" data-enabled checked>
+                    <span class="ws-muted small">Enabled</span>
+                </label>
+                {{end}}
+                <button type="button" class="btn btn-ghost btn-sm" onclick="removeHour(this)" aria-label="Remove hour"><i class="bi bi-trash"></i></button>
+            </div>
         </div>
         <div class="executions d-flex flex-column gap-2"></div>
         <button type="button" class="ws-add" onclick="addExecution(this.closest('.hour'))"><i class="bi bi-plus-lg"></i> Add run</button>
@@ -96,6 +104,10 @@
         const hour = hours.lastElementChild;
         if (data) {
             hour.querySelector('[name="hours[]"]').value = data.hour;
+            const enabled = hour.querySelector("[data-enabled]");
+            if (enabled) {
+                enabled.checked = data.enabled;
+            }
             data.executions.forEach(e => addExecution(hour, e));
         } else {
             addExecution(hour);
@@ -128,6 +140,10 @@
 
     document.getElementById("programForm").addEventListener("submit", () => {
         hours.querySelectorAll(".hour").forEach((hour, h) => {
+            const enabled = hour.querySelector("[data-enabled]");
+            if (enabled) {
+                enabled.name = `hours_${h}_enabled`;
+            }
             hour.querySelectorAll(".execution").forEach((exec, n) => {
                 exec.querySelector("[data-seconds]").name = `executions_${h}_seconds[]`;
                 exec.querySelectorAll("[data-zone]").forEach(cb => cb.name = `executions_${h}_zones_${n}[]`);

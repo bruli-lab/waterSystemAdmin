@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -135,8 +136,12 @@ func TestRequests(t *testing.T) {
 	exe := &zones.Execution{ID: "front yard", Seconds: 10}
 	zone := &zones.Zone{ID: "z1", Name: "Lawn", Relays: []int{1, 3}}
 	weekly := &programs.Weekly{
-		WeekDay:  programs.WeekDay(time.Monday),
-		Programs: []programs.Program{{Hour: mustHour(t, "09:00"), Executions: []programs.Execution{{Seconds: 7, Zones: []string{"z2"}}}}},
+		WeekDay: programs.WeekDay(time.Monday),
+		Programs: []programs.Program{{
+			Hour:       mustHour(t, "09:00"),
+			Enabled:    true,
+			Executions: []programs.Execution{{Seconds: 7, Zones: []string{"z2"}}},
+		}},
 	}
 	daily := programs.DailyProgramType
 	tests := []struct {
@@ -267,7 +272,7 @@ func TestRequests(t *testing.T) {
 			want: recorded{
 				method: http.MethodPut,
 				path:   "/programs/daily/08:00",
-				body:   `{"executions":[{"seconds":20,"zones":["z1","z2"]}],"fertilizer":false}`,
+				body:   `{"executions":[{"seconds":20,"zones":["z1","z2"]}],"fertilizer":false,"status":"disabled"}`,
 			},
 		},
 		{
@@ -276,7 +281,7 @@ func TestRequests(t *testing.T) {
 			want: recorded{
 				method: http.MethodPut,
 				path:   "/programs/weekly/monday",
-				body:   `{"programs":[{"executions":[{"seconds":7,"zones":["z2"]}],"hour":"09:00"}]}`,
+				body:   `{"programs":[{"executions":[{"seconds":7,"zones":["z2"]}],"hour":"09:00","status":"enabled"}]}`,
 			},
 		},
 		{
@@ -288,7 +293,7 @@ func TestRequests(t *testing.T) {
 			want: recorded{
 				method: http.MethodPut,
 				path:   "/programs/temperature/30",
-				body:   `{"programs":[{"executions":[{"seconds":7,"zones":["z2"]}],"hour":"09:00"}]}`,
+				body:   `{"programs":[{"executions":[{"seconds":7,"zones":["z2"]}],"hour":"09:00","status":"enabled"}]}`,
 			},
 		},
 	}
@@ -379,6 +384,21 @@ func TestFindPrograms(t *testing.T) {
 	}
 	if len(got.Temperature) != 1 || got.Temperature[0].Temperature != 30 {
 		t.Errorf("unexpected temperature: %+v", got.Temperature)
+	}
+}
+
+func TestFindProgramsStatus(t *testing.T) {
+	_, cl := newFakeAPI(t, http.StatusOK, `{
+		"daily":[{"hour":"08:00","status":"enabled"},{"hour":"09:00","status":"disabled"},{"hour":"10:00"}],
+		"weekly":[{"week_day":"Sunday","programs":[{"hour":"09:00","status":"disabled"}]}]
+	}`)
+	got, err := NewAllProgramsRepository(cl).FindAll(t.Context())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	enabled := []bool{got.Daily[0].Enabled, got.Daily[1].Enabled, got.Daily[2].Enabled, got.Weekly[0].Programs[0].Enabled}
+	if !slices.Equal(enabled, []bool{true, false, true, false}) {
+		t.Errorf("unexpected status: %v", enabled)
 	}
 }
 

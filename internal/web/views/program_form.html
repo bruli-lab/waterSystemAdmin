@@ -15,6 +15,13 @@
         {{end}}
     </div>
 
+    {{if .Data.Key}}
+    <label class="ws-toggle-row form-switch" for="enabled">
+        <span>Enabled<small>A disabled program is kept but does not run.</small></span>
+        <input type="checkbox" class="form-check-input" role="switch" id="enabled" name="enabled" value="true"{{if .Data.Enabled}} checked{{end}}>
+    </label>
+    {{end}}
+
     <label class="ws-toggle-row form-switch" for="fertilizer">
         <span>With fertilizer<small>Mixes fertilizer into every run of this program.</small></span>
         <input type="checkbox" class="form-check-input" role="switch" id="fertilizer" name="fertilizer" value="true"{{if .Data.Fertilizer}} checked{{end}}>

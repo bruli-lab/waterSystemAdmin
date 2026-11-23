@@ -41,7 +41,7 @@ func toExecInputs(execs []programs.Execution) []execInput {
 func toHourInputs(prgms []programs.Program) []hourInput {
 	result := make([]hourInput, len(prgms))
 	for i, p := range prgms {
-		result[i] = hourInput{Hour: p.Hour.String(), Executions: toExecInputs(p.Executions)}
+		result[i] = hourInput{Hour: p.Hour.String(), Enabled: p.Enabled, Executions: toExecInputs(p.Executions)}
 	}
 	return result
 }
@@ -77,6 +77,7 @@ func (a *App) EditProgram(w http.ResponseWriter, r *http.Request) {
 		Action:     fmt.Sprintf("/programs/edit/%s/%s", section, hour),
 		Key:        hour.String(),
 		Fertilizer: list[i].Fertilizer,
+		Enabled:    list[i].Enabled,
 		Executions: toExecInputs(list[i].Executions),
 	}
 	v, ok := a.formView(w, r, "program_form.html", form)
@@ -88,7 +89,7 @@ func (a *App) EditProgram(w http.ResponseWriter, r *http.Request) {
 		a.render(w, r, &v)
 		return
 	}
-	p, err := parseFertilizerProgram(r, hour.String())
+	p, err := parseFertilizerProgram(r, hour.String(), true)
 	if err == nil {
 		err = a.api.Programs.Update(r.Context(), p, progType)
 	}
@@ -131,7 +132,7 @@ func (a *App) EditWeeklyProgram(w http.ResponseWriter, r *http.Request) {
 		a.render(w, r, &v)
 		return
 	}
-	prgms, err := parseHourPrograms(r)
+	prgms, err := parseHourPrograms(r, true)
 	if err == nil {
 		err = a.api.Weekly.Update(r.Context(), &programs.Weekly{WeekDay: day, Programs: prgms})
 	}
@@ -174,7 +175,7 @@ func (a *App) EditTemperatureProgram(w http.ResponseWriter, r *http.Request) {
 		a.render(w, r, &v)
 		return
 	}
-	prgms, err := parseHourPrograms(r)
+	prgms, err := parseHourPrograms(r, true)
 	if err == nil {
 		err = a.api.Temperature.Update(r.Context(), &programs.TemperatureProgram{Temperature: temp, Programs: prgms})
 	}

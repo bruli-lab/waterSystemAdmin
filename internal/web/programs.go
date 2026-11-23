@@ -68,6 +68,7 @@ type execInput struct {
 
 type hourInput struct {
 	Hour       string      `json:"hour"`
+	Enabled    bool        `json:"enabled"`
 	Executions []execInput `json:"executions"`
 }
 
@@ -77,6 +78,7 @@ type programForm struct {
 	Action     string
 	Key        string
 	Fertilizer bool
+	Enabled    bool
 	Executions []execInput
 	Hours      []hourInput
 }
@@ -120,7 +122,7 @@ func (a *App) CreateProgram(w http.ResponseWriter, r *http.Request) {
 		a.render(w, r, &v)
 		return
 	}
-	p, err := parseFertilizerProgram(r, r.FormValue("hour"))
+	p, err := parseFertilizerProgram(r, r.FormValue("hour"), false)
 	if err == nil {
 		err = a.api.Programs.Save(r.Context(), p, progType)
 	}
@@ -145,7 +147,7 @@ func (a *App) CreateWeeklyProgram(w http.ResponseWriter, r *http.Request) {
 	day, err := programs.ParseWeekDay(r.FormValue("day"))
 	var prgms []programs.Program
 	if err == nil {
-		prgms, err = parseHourPrograms(r)
+		prgms, err = parseHourPrograms(r, false)
 	}
 	if err == nil {
 		err = a.api.Weekly.Save(r.Context(), &programs.Weekly{WeekDay: day, Programs: prgms})
@@ -173,7 +175,7 @@ func (a *App) CreateTemperatureProgram(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err = errors.New("invalid temperature")
 	} else {
-		prgms, err = parseHourPrograms(r)
+		prgms, err = parseHourPrograms(r, false)
 	}
 	if err == nil {
 		err = a.api.Temperature.Save(r.Context(), &programs.TemperatureProgram{Temperature: temp, Programs: prgms})
@@ -231,7 +233,7 @@ func (a *App) RemoveTemperatureProgram(w http.ResponseWriter, r *http.Request) {
 	a.success(w, r, programsURL("temperature"), fmt.Sprintf("Program for %d °C deleted.", temp))
 }
 
-func parseFertilizerProgram(r *http.Request, hourValue string) (*programs.FertilizerProgram, error) {
+func parseFertilizerProgram(r *http.Request, hourValue string, editing bool) (*programs.FertilizerProgram, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, errors.New("invalid form")
 	}
@@ -246,10 +248,15 @@ func parseFertilizerProgram(r *http.Request, hourValue string) (*programs.Fertil
 	if err != nil {
 		return nil, err
 	}
-	return &programs.FertilizerProgram{Executions: execs, Hour: hour, Fertilizer: fertilizer}, nil
+	return &programs.FertilizerProgram{
+		Executions: execs,
+		Hour:       hour,
+		Fertilizer: fertilizer,
+		Enabled:    !editing || r.FormValue("enabled") == "true",
+	}, nil
 }
 
-func parseHourPrograms(r *http.Request) ([]programs.Program, error) {
+func parseHourPrograms(r *http.Request, editing bool) ([]programs.Program, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, errors.New("invalid form")
 	}
@@ -269,7 +276,8 @@ func parseHourPrograms(r *http.Request) ([]programs.Program, error) {
 		if err != nil {
 			return nil, fmt.Errorf("hour %s: %w", hourValue, err)
 		}
-		prgms[h] = programs.Program{Executions: execs, Hour: hour}
+		enabled := !editing || r.FormValue(fmt.Sprintf("hours_%d_enabled", h)) == "true"
+		prgms[h] = programs.Program{Executions: execs, Hour: hour, Enabled: enabled}
 	}
 	return prgms, nil
 }

@@ -25,7 +25,11 @@ func (a ProgramsRepository) Save(ctx context.Context, p *programs.FertilizerProg
 }
 
 func (a ProgramsRepository) Update(ctx context.Context, p *programs.FertilizerProgram, t *programs.TypeProgram) error {
-	dto := UpdateFertilizerProgram{Executions: toExecutionDTOs(p.Executions), Fertilizer: p.Fertilizer}
+	dto := UpdateFertilizerProgram{
+		Executions: toExecutionDTOs(p.Executions),
+		Fertilizer: p.Fertilizer,
+		Status:     toStatus(p.Enabled),
+	}
 	return a.cl.do(ctx, http.MethodPut, "/programs/"+t.String()+"/"+p.Hour.String(), dto, nil)
 }
 
@@ -82,7 +86,7 @@ func buildPrograms(data []Program) ([]programs.Program, error) {
 		if err != nil {
 			return nil, err
 		}
-		result[i] = programs.Program{Executions: buildExecutions(p.Executions), Hour: hour}
+		result[i] = programs.Program{Executions: buildExecutions(p.Executions), Hour: hour, Enabled: isEnabled(p.Status)}
 	}
 	return result, nil
 }
@@ -98,6 +102,7 @@ func buildFertilizerPrograms(data []FertilizerProgram) ([]programs.FertilizerPro
 			Executions: buildExecutions(p.Executions),
 			Hour:       hour,
 			Fertilizer: p.Fertilizer,
+			Enabled:    isEnabled(p.Status),
 		}
 	}
 	return result, nil
@@ -143,6 +148,14 @@ func toProgramDTOs(prgms []programs.Program) []Program {
 	result := make([]Program, len(prgms))
 	for i, p := range prgms {
 		result[i] = Program{Executions: toExecutionDTOs(p.Executions), Hour: p.Hour.String()}
+	}
+	return result
+}
+
+func toUpdateProgramDTOs(prgms []programs.Program) []Program {
+	result := toProgramDTOs(prgms)
+	for i, p := range prgms {
+		result[i].Status = toStatus(p.Enabled)
 	}
 	return result
 }

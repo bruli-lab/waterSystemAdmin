@@ -45,6 +45,7 @@
                 <span class="ws-prog-key">{{.Hour}}</span>
                 <div class="ws-execs">{{range .Executions}}{{template "execution" (named . $.Data.ZoneNames)}}{{end}}</div>
                 <div class="ws-prog-side">
+                    {{if not .Enabled}}<span class="ws-chip"><i class="bi bi-pause-circle"></i>Disabled</span>{{end}}
                     {{if .Fertilizer}}<span class="ws-chip moss"><i class="bi bi-flower2"></i>Fertilizer</span>
                     {{else}}<span class="ws-chip water"><i class="bi bi-droplet"></i>Water</span>{{end}}
                     {{template "row_menu" (menu (printf "/programs/edit/%s/%s" $s.Type .Hour) (printf "/programs/delete/%s/%s" .Hour $s.Type) (printf "the %s program at %s" (lower $s.Title) .Hour))}}
@@ -151,7 +152,7 @@
 {{$names := .Names}}{{range .V}}
 <div class="ws-sub-hour">
     <span class="ws-mono">{{.Hour}}</span>
-    <div class="ws-execs">{{range .Executions}}{{template "execution" (named . $names)}}{{end}}</div>
+    <div class="ws-execs">{{if not .Enabled}}<span class="ws-chip"><i class="bi bi-pause-circle"></i>Disabled</span>{{end}}{{range .Executions}}{{template "execution" (named . $names)}}{{end}}</div>
 </div>
 {{end}}
 {{end}}
